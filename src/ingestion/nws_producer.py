@@ -12,19 +12,22 @@ class NWSProducer(BaseProducer):
     def fetch_and_send(self):
         headers = {"User-Agent": "DisasterRAG/1.0"}
         resp = requests.get(NWS_URL, headers=headers, timeout=30)
-        data = resp.json()
+        resp.raise_for_status()
 
-        for feature in data.get("features", [])[:20]:
-            props = feature["properties"]
+        for f in resp.json().get("features", [])[:50]:
+            props = f["properties"]
             event = {
                 "event_id": f"nws_{props.get('id', '')}",
                 "event_type": "weather_alert",
                 "source": "NWS",
                 "timestamp": props.get("sent", ""),
                 "title": props.get("headline", ""),
-                "description": props.get("description", "")[:500],
+                "description": props.get("description", "")[:1000],
                 "severity": props.get("severity", ""),
+                "urgency": props.get("urgency", ""),
+                "event": props.get("event", ""),
                 "areas": props.get("areaDesc", ""),
+                "expires": props.get("expires", ""),
             }
             self.send(event["event_id"], event)
 

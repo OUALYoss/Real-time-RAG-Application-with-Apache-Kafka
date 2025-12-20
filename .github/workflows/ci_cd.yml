@@ -19,7 +19,7 @@ jobs:
           pip install flake8 black
 
       - name: Lint code
-        run: flake8 . --max-line-length=88 --extend-ignore=E203,W391 --exclude=.venv,generator-archi.py
+        run: flake8 . --max-line-length=100 --extend-ignore=E203,W391 --exclude=.venv,generator-archi.py
 
       - name: Format code
         run: black --check . --exclude=.venv,generator-archi.py

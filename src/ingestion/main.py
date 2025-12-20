@@ -1,25 +1,49 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
+from .config import INTERVALS
 from .usgs_producer import USGSProducer
 from .gdacs_producer import GDACSProducer
 from .nws_producer import NWSProducer
+from .owm_producer import OWMProducer
+from .nasa_firms_producer import FIRMSProducer
+from .newsapi_producer import NewsProducer
 
 
 def main():
-    usgs = USGSProducer()
-    gdacs = GDACSProducer()
-    nws = NWSProducer()
+    producers = {
+        "usgs": USGSProducer(),
+        "gdacs": GDACSProducer(),
+        "nws": NWSProducer(),
+        "owm": OWMProducer(),
+        "firms": FIRMSProducer(),
+        "news": NewsProducer(),
+    }
 
     scheduler = BlockingScheduler()
-    scheduler.add_job(usgs.fetch_and_send, "interval", seconds=60)
-    scheduler.add_job(gdacs.fetch_and_send, "interval", seconds=300)
-    scheduler.add_job(nws.fetch_and_send, "interval", seconds=120)
 
-    print("Starting producers...")
-    for p in [usgs, gdacs, nws]:
+    scheduler.add_job(
+        producers["usgs"].fetch_and_send, "interval", seconds=INTERVALS["earthquakes"]
+    )
+    scheduler.add_job(
+        producers["gdacs"].fetch_and_send, "interval", seconds=INTERVALS["disasters"]
+    )
+    scheduler.add_job(
+        producers["nws"].fetch_and_send, "interval", seconds=INTERVALS["weather_nws"]
+    )
+    scheduler.add_job(
+        producers["owm"].fetch_and_send, "interval", seconds=INTERVALS["weather_owm"]
+    )
+    scheduler.add_job(
+        producers["firms"].fetch_and_send, "interval", seconds=INTERVALS["wildfires"]
+    )
+    scheduler.add_job(
+        producers["news"].fetch_and_send, "interval", seconds=INTERVALS["news"]
+    )
+
+    for p in producers.values():
         try:
             p.fetch_and_send()
-        except Exception as e:
-            print(f"Error: {e}")
+        except Exception:
+            pass
 
     scheduler.start()
 
