@@ -3,10 +3,10 @@ import os
 PROJECT = ""
 
 FILES = {
-# =============================================================================
-# DOCKER-COMPOSE
-# =============================================================================
-"docker-compose.yml": """version: "3.8"
+    # =============================================================================
+    # DOCKER-COMPOSE
+    # =============================================================================
+    "docker-compose.yml": """version: "3.8"
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -40,11 +40,10 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 """,
-
-# =============================================================================
-# REQUIREMENTS
-# =============================================================================
-"requirements.txt": """kafka-python==2.0.2
+    # =============================================================================
+    # REQUIREMENTS
+    # =============================================================================
+    "requirements.txt": """kafka-python==2.0.2
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
 httpx==0.26.0
@@ -59,25 +58,21 @@ streamlit==1.31.0
 plotly==5.18.0
 requests==2.31.0
 """,
-
-# =============================================================================
-# ENV
-# =============================================================================
-".env.example": """KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+    # =============================================================================
+    # ENV
+    # =============================================================================
+    ".env.example": """KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 OPENWEATHER_API_KEY=your_key
 NEWS_API_KEY=your_key
 NASA_FIRMS_MAP_KEY=your_key
 OLLAMA_MODEL=llama3.2
 """,
-
-# =============================================================================
-# SRC/INGESTION
-# =============================================================================
-"src/__init__.py": "",
-
-"src/ingestion/__init__.py": "",
-
-"src/ingestion/config.py": """import os
+    # =============================================================================
+    # SRC/INGESTION
+    # =============================================================================
+    "src/__init__.py": "",
+    "src/ingestion/__init__.py": "",
+    "src/ingestion/config.py": """import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -90,8 +85,7 @@ TOPICS = {
     "news": "raw-news",
 }
 """,
-
-"src/ingestion/producer.py": """import json
+    "src/ingestion/producer.py": """import json
 from kafka import KafkaProducer
 from datetime import datetime
 from .config import KAFKA_SERVERS
@@ -110,8 +104,7 @@ class BaseProducer:
         self.producer.flush()
         print(f"[{self.topic}] Sent: {key}")
 """,
-
-"src/ingestion/usgs_producer.py": """import requests
+    "src/ingestion/usgs_producer.py": """import requests
 from datetime import datetime
 from .producer import BaseProducer
 from .config import TOPICS
@@ -146,8 +139,7 @@ class USGSProducer(BaseProducer):
 if __name__ == "__main__":
     USGSProducer().fetch_and_send()
 """,
-
-"src/ingestion/gdacs_producer.py": """import feedparser
+    "src/ingestion/gdacs_producer.py": """import feedparser
 from .producer import BaseProducer
 from .config import TOPICS
 
@@ -177,8 +169,7 @@ class GDACSProducer(BaseProducer):
 if __name__ == "__main__":
     GDACSProducer().fetch_and_send()
 """,
-
-"src/ingestion/nws_producer.py": """import requests
+    "src/ingestion/nws_producer.py": """import requests
 from .producer import BaseProducer
 from .config import TOPICS
 
@@ -210,8 +201,7 @@ class NWSProducer(BaseProducer):
 if __name__ == "__main__":
     NWSProducer().fetch_and_send()
 """,
-
-"src/ingestion/main.py": """from apscheduler.schedulers.blocking import BlockingScheduler
+    "src/ingestion/main.py": """from apscheduler.schedulers.blocking import BlockingScheduler
 from .usgs_producer import USGSProducer
 from .gdacs_producer import GDACSProducer
 from .nws_producer import NWSProducer
@@ -238,13 +228,11 @@ def main():
 if __name__ == "__main__":
     main()
 """,
-
-# =============================================================================
-# SRC/EMBEDDING
-# =============================================================================
-"src/embedding/__init__.py": "",
-
-"src/embedding/embedder.py": """from sentence_transformers import SentenceTransformer
+    # =============================================================================
+    # SRC/EMBEDDING
+    # =============================================================================
+    "src/embedding/__init__.py": "",
+    "src/embedding/embedder.py": """from sentence_transformers import SentenceTransformer
 
 MODEL = "all-MiniLM-L6-v2"
 
@@ -259,8 +247,7 @@ class Embedder:
         text = f"{event.get('title', '')} {event.get('description', '')} {event.get('place', '')}"
         return self.embed(text)
 """,
-
-"src/embedding/vector_store.py": """import chromadb
+    "src/embedding/vector_store.py": """import chromadb
 from datetime import datetime
 
 class VectorStore:
@@ -286,13 +273,11 @@ class VectorStore:
     def count(self) -> int:
         return self.collection.count()
 """,
-
-# =============================================================================
-# SRC/RAG
-# =============================================================================
-"src/rag/__init__.py": "",
-
-"src/rag/retriever.py": """from ..embedding.embedder import Embedder
+    # =============================================================================
+    # SRC/RAG
+    # =============================================================================
+    "src/rag/__init__.py": "",
+    "src/rag/retriever.py": """from ..embedding.embedder import Embedder
 from ..embedding.vector_store import VectorStore
 
 class Retriever:
@@ -315,8 +300,7 @@ class Retriever:
                 })
         return events
 """,
-
-"src/rag/generator.py": """import ollama
+    "src/rag/generator.py": """import ollama
 
 PROMPT = '''Based on these disaster events, answer the question.
 
@@ -343,13 +327,11 @@ class Generator:
         )
         return response["message"]["content"]
 """,
-
-# =============================================================================
-# SRC/API
-# =============================================================================
-"src/api/__init__.py": "",
-
-"src/api/main.py": """from fastapi import FastAPI
+    # =============================================================================
+    # SRC/API
+    # =============================================================================
+    "src/api/__init__.py": "",
+    "src/api/main.py": """from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from ..rag.retriever import Retriever
@@ -385,11 +367,10 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
 """,
-
-# =============================================================================
-# DASHBOARD
-# =============================================================================
-"dashboard/app.py": """import streamlit as st
+    # =============================================================================
+    # DASHBOARD
+    # =============================================================================
+    "dashboard/app.py": """import streamlit as st
 import requests
 
 API = "http://localhost:8080"
@@ -416,11 +397,10 @@ try:
 except:
     st.sidebar.warning("API offline")
 """,
-
-# =============================================================================
-# MAKEFILE
-# =============================================================================
-"Makefile": """up:
+    # =============================================================================
+    # MAKEFILE
+    # =============================================================================
+    "Makefile": """up:
 \tdocker-compose up -d
 
 down:
@@ -438,11 +418,10 @@ dashboard:
 install:
 \tpip install -r requirements.txt
 """,
-
-# =============================================================================
-# README
-# =============================================================================
-"README.md": """# Disaster RAG System
+    # =============================================================================
+    # README
+    # =============================================================================
+    "README.md": """# Disaster RAG System
 
 ## Quick Start
 
@@ -470,17 +449,19 @@ streamlit run dashboard/app.py
 """,
 }
 
+
 def main():
-    
+
     for path, content in FILES.items():
         full_path = os.path.join(PROJECT, path)
         os.makedirs(os.path.dirname(full_path) or ".", exist_ok=True)
         with open(full_path, "w") as f:
             f.write(content.strip() + "\n")
         print(f"✅ {path}")
-    
+
     print(f"\n🎉 Projet créé: {PROJECT}/")
     print(f"   cd {PROJECT} && make install && make up")
+
 
 if __name__ == "__main__":
     main()

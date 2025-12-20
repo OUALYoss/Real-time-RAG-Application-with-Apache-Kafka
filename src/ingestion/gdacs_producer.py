@@ -4,13 +4,14 @@ from .config import TOPICS
 
 GDACS_URL = "https://gdacs.org/xml/rss.xml"
 
+
 class GDACSProducer(BaseProducer):
     def __init__(self):
         super().__init__(TOPICS["disasters"])
-    
+
     def fetch_and_send(self):
         feed = feedparser.parse(GDACS_URL)
-        
+
         for entry in feed.entries:
             event = {
                 "event_id": f"gdacs_{entry.get('gdacs_eventid', '')}",
@@ -24,6 +25,7 @@ class GDACSProducer(BaseProducer):
                 "longitude": float(entry.get("geo_long", 0) or 0),
             }
             self.send(event["event_id"], event)
+
 
 if __name__ == "__main__":
     GDACSProducer().fetch_and_send()

@@ -16,11 +16,11 @@ if st.button("Search"):
                 st.success("Answer:")
                 st.write(data["answer"])
                 st.caption(f"Sources: {len(data['sources'])} events")
-            except:
+            except Exception:
                 st.error("API not available. Run: uvicorn src.api.main:app")
 
 try:
     stats = requests.get(f"{API}/stats").json()
     st.sidebar.metric("Events", stats["total_events"])
-except:
+except Exception:
     st.sidebar.warning("API offline")

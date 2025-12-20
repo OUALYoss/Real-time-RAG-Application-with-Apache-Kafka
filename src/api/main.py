@@ -6,23 +6,29 @@ from ..rag.generator import Generator
 from ..embedding.vector_store import VectorStore
 
 app = FastAPI(title="Disaster RAG API")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+)
 
 retriever = Retriever()
 generator = Generator()
 store = VectorStore()
 
+
 class Query(BaseModel):
     question: str
     n_results: int = 5
+
 
 @app.get("/")
 def root():
     return {"status": "running"}
 
+
 @app.get("/stats")
 def stats():
     return {"total_events": store.count()}
+
 
 @app.post("/query")
 def query(q: Query):
@@ -30,6 +36,8 @@ def query(q: Query):
     answer = generator.generate(q.question, events)
     return {"answer": answer, "sources": events}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8080)
