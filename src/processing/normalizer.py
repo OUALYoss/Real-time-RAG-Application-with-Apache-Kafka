@@ -11,7 +11,6 @@ class Normalizer:
             "latitude": event.get("latitude"),
             "longitude": event.get("longitude"),
             "severity": self._get_severity(event),
-            "metadata": self._get_metadata(event),
         }
 
     def _get_severity(self, event: dict) -> str:
