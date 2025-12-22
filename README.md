@@ -4,12 +4,14 @@
 
 ```bash
 # 1. Install dependencies
+# 1. Install dependencies
 pip install -r requirements.txt
 
 # 2. Start infrastructure (Kafka, ChromaDB, etc.)
+# 2. Start infrastructure (Kafka, ChromaDB, etc.)
 docker-compose up -d
 
-# 3. Start Ollama and pull model if it's not done before
+# 3. Start Ollama and pull model
 ollama serve
 ollama pull llama3.2
 
@@ -32,13 +34,19 @@ python -m src.api.main       # Terminal 4: API server
 
 streamlit run dashboard/app.py
 
+
 ```
 
 ## URLs
 
+
 - Dashboard: http://localhost:8501
 - API: http://localhost:8080/docs
 - Kafka UI: http://localhost:8090
+
+```
+
+```
 
 ```
 
