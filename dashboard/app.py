@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 
 API = "http://localhost:8081"
+API = "http://localhost:8081"
 
 st.set_page_config(page_title="Disaster RAG", layout="wide")
 
@@ -157,7 +158,18 @@ with col_main:
                 st.error("API not available. Run: uvicorn src.api.main:app")
 =======
             result = query_rag(question, n_results)
->>>>>>> d2f6fdc (version 1)
+            try:
+                r = requests.post(f"{API}/query", json={"question": question})
+                data = r.json()
+                st.success("Answer:")
+                st.write(data["answer"])
+                st.caption(f"Sources: {len(data['sources'])} events")
+                for event in data["sources"]:
+                    st.markdown(f"- **Source:** {event['metadata'].get('source', 'N/A')} | **Time:** {event['metadata'].get('ingested_at', 'N/A')} |**URL:** {event['metadata'].get('url', 'N/A')}") 
+                    st.write(event["document"])
+                # st.write(data["events"])
+            except Exception:
+                st.error("API not available. Run: uvicorn src.api.main:app")
 
         if "error" in result:
             st.error(f"Error: {result['error']}")
