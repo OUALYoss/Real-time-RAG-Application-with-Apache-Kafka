@@ -7,17 +7,26 @@ from kafka import KafkaConsumer
 from ..rag.retriever import Retriever
 from ..rag.generator import Generator
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ..embedding.vector_store import VectorStore
 import uvicorn
 
 =======
 >>>>>>> d2f6fdc (version 1)
+=======
+=======
+from ..embedding.vector_store import VectorStore
+import uvicorn
+
+>>>>>>> origin/wiam_branch
+>>>>>>> cb56b56 (Minor change : Adding a main() function)
 
 app = FastAPI(title="Disaster RAG API")
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 retriever = Retriever()
@@ -28,6 +37,17 @@ events_cache = {}
 retriever = None
 generator = None
 >>>>>>> d2f6fdc (version 1)
+=======
+events_cache = {}
+retriever = None
+generator = None
+=======
+
+retriever = Retriever()
+generator = Generator()
+store = VectorStore()
+>>>>>>> origin/wiam_branch
+>>>>>>> cb56b56 (Minor change : Adding a main() function)
 
 
 class QueryRequest(BaseModel):
