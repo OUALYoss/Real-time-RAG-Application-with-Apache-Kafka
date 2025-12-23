@@ -117,7 +117,7 @@ def get_event(event_id: str):
     return {"error": "Event not found"}
 
 
-@app.post("/events/refresh")
+@app.get("/events/refresh")
 def refresh_events():
     load_events_from_kafka()
     return {"status": "refreshed", "total_events": len(events_cache)}
