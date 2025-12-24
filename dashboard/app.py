@@ -17,8 +17,9 @@ if st.button("Search"):
                 st.write(data["answer"])
                 st.caption(f"Sources: {len(data['sources'])} events")
                 for event in data["sources"]:
-                    st.markdown(f"- **Source:** {event['metadata'].get('source', 'N/A')} | **Time:** {event['metadata'].get('ingested_at', 'N/A')} |**URL:** {event['metadata'].get('url', 'N/A')}") 
+                    st.markdown(f"- **Source:** {event['metadata'].get('source', 'N/A')} | **Time:** {event['metadata'].get('timestamp', 'N/A')} |**URL:** {event['metadata'].get('url', 'N/A')}") 
                     st.write(event["document"])
+                    st.write(event['metadata'])
                 # st.write(data["events"])
             except Exception:
                 st.error("API not available. Run: uvicorn src.api.main:app")

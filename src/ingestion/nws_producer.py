@@ -22,7 +22,7 @@ class NWSProducer(BaseProducer):
                 "source": "NWS",
                 "timestamp": props.get("sent", ""),
                 "title": props.get("headline", ""),
-                "description": props.get("description", "")[:1000],
+                "description": (props.get("description") or "")[:1000],
                 "severity": props.get("severity", ""),
                 "urgency": props.get("urgency", ""),
                 "event": props.get("event", ""),

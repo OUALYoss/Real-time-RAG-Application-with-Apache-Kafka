@@ -49,7 +49,7 @@ class Processor:
 
 
 def main():
-    """Main function with scheduler like ingestion"""
+    """Main function with scheduler"""
     processor = Processor()
 
     # Process immediately at startup

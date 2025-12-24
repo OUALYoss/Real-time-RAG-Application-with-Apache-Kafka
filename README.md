@@ -9,7 +9,7 @@ pip install -r requirements.txt
 # 2. Start infrastructure (Kafka, ChromaDB, etc.)
 docker-compose up -d
 
-# 3. Start Ollama and pull model
+# 3. Start Ollama and pull model if it's not done before
 ollama serve
 ollama pull llama3.2
 

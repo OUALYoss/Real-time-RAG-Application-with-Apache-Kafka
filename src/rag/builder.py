@@ -37,10 +37,10 @@ class Builder:
             event_id=event_id,
             embedding=embedding,
             document=event["description"],
-            metadata={"source": event.get("source", "unknown"), 
-                      "ingested_at": event.get("ingested_at", "unknown"),
-                      "event_type": event.get("event_type", "unknown"),
-                      "url": event.get("url", "unknown")
+            metadata={"source": event["source"], 
+                      "timestamp": event["timestamp"],
+                      "event_type": event["event_type"],
+                    #   "url": event["url"]
             }
 
         )
