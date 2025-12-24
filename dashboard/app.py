@@ -18,7 +18,10 @@ if st.button("Search"):
                 st.caption(f"Sources: {len(data['sources'])} events")
                 for event in data["sources"]:
                     st.markdown(
-                        f"- **Source:** {event['metadata'].get('source', 'N/A')} | **Time:** {event['metadata'].get('timestamp', 'N/A')}"
+                        f"- **Source:** {event['metadata'].get('source', 'N/A')}"
+                    )
+                    st.markdown(
+                        f"**Time:** {event['metadata'].get('timestamp', 'N/A')}"
                     )
                     st.write(event["document"])
                     st.write(event["metadata"])
