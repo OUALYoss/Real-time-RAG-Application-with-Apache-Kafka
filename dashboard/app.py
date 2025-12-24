@@ -172,6 +172,7 @@ with col_main:
                     )
 
 st.markdown("---")
+
 st.markdown(
     """
 <div style="text-align: center; color: #888; font-size: 0.9rem;">
