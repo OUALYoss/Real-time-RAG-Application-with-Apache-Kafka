@@ -2,6 +2,7 @@ import json
 from kafka import KafkaProducer
 from datetime import datetime
 from .config import KAFKA_SERVERS
+import logging
 
 
 class BaseProducer:
@@ -12,8 +13,8 @@ class BaseProducer:
             value_serializer=lambda v: json.dumps(v).encode(),
         )
 
-    def send(self, key: str, data: dict):
+    def send(self, key: str, data: dict) -> None:
         data["ingested_at"] = datetime.utcnow().isoformat() + "Z"
         self.producer.send(self.topic, key=key.encode(), value=data)
         self.producer.flush()
-        print(f"[{self.topic}] Sent: {key}")
+        logging.info(f"[{self.topic}] Sent: {key}")
