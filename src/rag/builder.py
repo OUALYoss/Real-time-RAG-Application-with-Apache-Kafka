@@ -1,14 +1,13 @@
 from ..embedding.embedder import Embedder
 from ..embedding.vector_store import VectorStore
-from kafka import KafkaConsumer, TopicPartition
-from datetime import datetime
 import json
 import logging
-import time
+from kafka import KafkaConsumer
 from ..ingestion.config import KAFKA_SERVERS
 
 
 TOPIC = "processed-events"
+
 
 class Builder:
     def __init__(self):
@@ -25,24 +24,24 @@ class Builder:
     def build_and_store(self, event: dict) -> None:
         """Store a single event in vector store, skip if already exists"""
         event_id = event["event_id"]
-        
+
         # Check if event already exists
         existing = self.store.collection.get(ids=[event_id])
-        if existing['ids']:
+        if existing["ids"]:
             logging.info(f"Event {event_id} already embedded, skipping")
             return
-        
+
         embedding = self.embedder.embed(event["description"])
         self.store.add(
             event_id=event_id,
             embedding=embedding,
             document=event["description"],
-            metadata={"source": event["source"], 
-                      "timestamp": event["timestamp"],
-                      "event_type": event["event_type"],
-                    #   "url": event["url"]
-            }
-
+            metadata={
+                "source": event["source"],
+                "timestamp": event["timestamp"],
+                "event_type": event["event_type"],
+                #   "url": event["url"]
+            },
         )
         logging.info(f"Stored event: {event_id}")
 
@@ -80,7 +79,6 @@ class Builder:
         historical_consumer.close()
         logging.info("Historical embedding completed")
 
-
     def run_streaming(self) -> None:
         """Stream and embed new events from the topic as they arrive, skipping duplicates"""
         logging.info("Starting streaming consumer for new events...")
@@ -89,7 +87,9 @@ class Builder:
             for message in self.consumer:
                 try:
                     event = message.value
-                    logging.info(f"Processing new event: {event.get('event_id', 'unknown')}")
+                    logging.info(
+                        f"Processing new event: {event.get('event_id', 'unknown')}"
+                    )
                     self.build_and_store(event)
                 except Exception as e:
                     logging.error(f"Error processing event: {e}")
@@ -100,7 +100,6 @@ class Builder:
         """First embed historical events, then stream new events"""
         self.run_historical()
         self.run_streaming()
-
 
 
 def main():

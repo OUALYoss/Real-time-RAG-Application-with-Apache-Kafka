@@ -1,5 +1,4 @@
 import json
-import time
 from apscheduler.schedulers.blocking import BlockingScheduler
 from kafka import KafkaConsumer, KafkaProducer
 from .normalizer import Normalizer
@@ -59,10 +58,7 @@ def main():
     # Set up scheduler for periodic processing
     scheduler = BlockingScheduler()
     scheduler.add_job(
-        processor.run,
-        "interval",
-        seconds=PROCESSING_INTERVAL,
-        id="batch_processing"
+        processor.run, "interval", seconds=PROCESSING_INTERVAL, id="batch_processing"
     )
 
     print(f"Starting scheduled processing every {PROCESSING_INTERVAL} seconds...")
@@ -71,3 +67,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

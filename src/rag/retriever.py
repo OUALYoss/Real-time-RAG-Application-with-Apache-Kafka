@@ -7,7 +7,9 @@ class Retriever:
         self.embedder = Embedder()
         self.store = VectorStore()
 
-    def retrieve(self, query: str, n=5) -> list:    # We can add a timestamp limitation here later
+    def retrieve(
+        self, query: str, n=5
+    ) -> list:  # We can add a timestamp limitation here later
         embedding = self.embedder.embed(query)
         results = self.store.search(embedding, n=n)
 

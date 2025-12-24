@@ -2,7 +2,7 @@ import json
 from kafka import KafkaProducer
 from datetime import datetime
 from .config import KAFKA_SERVERS
-import logging 
+import logging
 
 
 class BaseProducer:
