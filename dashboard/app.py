@@ -1,8 +1,7 @@
 import streamlit as st
 import requests
 
-API = "http://localhost:8081"
-API = "http://localhost:8081"
+API = "http://localhost:8080"
 
 st.set_page_config(page_title="Disaster RAG", layout="wide")
 
@@ -137,42 +136,7 @@ with col_main:
 
     if search and question:
         with st.spinner("Searching..."):
-<<<<<<< HEAD
-            try:
-                r = requests.post(f"{API}/query", json={"question": question})
-                data = r.json()
-                st.success("Answer:")
-                st.write(data["answer"])
-                st.caption(f"Sources: {len(data['sources'])} events")
-                for event in data["sources"]:
-                    st.markdown(
-                        f"- **Source:** {event['metadata'].get('source', 'N/A')}"
-                    )
-                    st.markdown(
-                        f"**Time:** {event['metadata'].get('timestamp', 'N/A')}"
-                    )
-                    st.write(event["document"])
-                    st.write(event["metadata"])
-                # st.write(data["events"])
-            except Exception:
-                st.error("API not available. Run: uvicorn src.api.main:app")
-=======
             result = query_rag(question, n_results)
-            try:
-                r = requests.post(f"{API}/query", json={"question": question})
-                data = r.json()
-                st.success("Answer:")
-                st.write(data["answer"])
-                st.caption(f"Sources: {len(data['sources'])} events")
-                for event in data["sources"]:
-                    st.markdown(
-                        f"- **Source:** {event['metadata'].get('source', 'N/A')} | **Time:** {event['metadata'].get('timestamp', 'N/A')}"
-                    )
-                    st.write(event["document"])
-                    st.write(event["metadata"])
-                # st.write(data["events"])
-            except Exception:
-                st.error("API not available. Run: uvicorn src.api.main:app")
 
         if "error" in result:
             st.error(f"Error: {result['error']}")
@@ -208,6 +172,7 @@ with col_main:
                     )
 
 st.markdown("---")
+
 st.markdown(
     """
 <div style="text-align: center; color: #888; font-size: 0.9rem;">
