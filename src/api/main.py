@@ -28,7 +28,7 @@ def load_events_from_kafka(max_events: int = 5000):
             "processed-events",
             bootstrap_servers="localhost:9092",
             auto_offset_reset="earliest",
-            consumer_timeout_ms=5000,
+            consumer_timeout_ms=15000,
             value_deserializer=lambda m: json.loads(m.decode()),
         )
         count = 0
@@ -82,7 +82,7 @@ def list_events(
     event_type: Optional[str] = None,
     source: Optional[str] = None,
     severity: Optional[str] = None,
-    limit: int = Query(default=20, le=5000),
+    limit: int = Query(default=150, le=5000),
 ):
     results = list(events_cache.values())
 
