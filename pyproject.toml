@@ -22,6 +22,7 @@ dependencies = [
     "plotly>=5.18.0",
     "numpy>=1.26.4",
     "pandas>=2.0.0",
+    "pytrends",
 ]
 
 [tool.black]
