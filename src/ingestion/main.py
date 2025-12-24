@@ -1,11 +1,13 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
+
 from .config import INTERVALS
-from .usgs_producer import USGSProducer
 from .gdacs_producer import GDACSProducer
-from .nws_producer import NWSProducer
-from .owm_producer import OWMProducer
 from .nasa_firms_producer import FIRMSProducer
 from .newsapi_producer import NewsProducer
+from .nws_producer import NWSProducer
+from .owm_producer import OWMProducer
+from .trends_producer import TrendsProducer
+from .usgs_producer import USGSProducer
 
 
 def main():
@@ -16,6 +18,7 @@ def main():
         "owm": OWMProducer(),
         "firms": FIRMSProducer(),
         "news": NewsProducer(),
+        "trends": TrendsProducer(),
     }
 
     scheduler = BlockingScheduler()
@@ -37,6 +40,9 @@ def main():
     )
     scheduler.add_job(
         producers["news"].fetch_and_send, "interval", seconds=INTERVALS["news"]
+    )
+    scheduler.add_job(
+        producers["trends"].fetch_and_send, "interval", seconds=INTERVALS["trends"]
     )
 
     for p in producers.values():

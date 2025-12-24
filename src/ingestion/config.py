@@ -1,4 +1,5 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,6 +11,7 @@ TOPICS = {
     "weather": "raw-weather",
     "wildfires": "raw-wildfires",
     "news": "raw-news",
+    "trends": "raw-trends",
 }
 
 INTERVALS = {
@@ -19,6 +21,7 @@ INTERVALS = {
     "weather_owm": 600,
     "wildfires": 900,
     "news": 300,
+    "trends": 3600,
 }
 
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
