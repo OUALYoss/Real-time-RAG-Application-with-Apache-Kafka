@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-API = "http://localhost:8080"
+API = "http://localhost:8081"
 
 st.title("Disaster Monitor")
 
@@ -16,6 +16,16 @@ if st.button("Search"):
                 st.success("Answer:")
                 st.write(data["answer"])
                 st.caption(f"Sources: {len(data['sources'])} events")
+                for event in data["sources"]:
+                    st.markdown(
+                        f"- **Source:** {event['metadata'].get('source', 'N/A')}"
+                    )
+                    st.markdown(
+                        f"**Time:** {event['metadata'].get('timestamp', 'N/A')}"
+                    )
+                    st.write(event["document"])
+                    st.write(event["metadata"])
+                # st.write(data["events"])
             except Exception:
                 st.error("API not available. Run: uvicorn src.api.main:app")
 

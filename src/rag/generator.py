@@ -7,11 +7,11 @@ EVENTS:
 
 QUESTION: {question}
 
-Answer factually based on the data above:"""
+Answer factually based on the data above, include all the available data :"""
 
 
 class Generator:
-    def __init__(self, model="llama3.2"):
+    def __init__(self, model="llama3.2"):  # tinyllama
         self.model = model
 
     def generate(self, question: str, events: list) -> str:

@@ -4,11 +4,14 @@ from pydantic import BaseModel
 from ..rag.retriever import Retriever
 from ..rag.generator import Generator
 from ..embedding.vector_store import VectorStore
+import uvicorn
+
 
 app = FastAPI(title="Disaster RAG API")
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
+
 
 retriever = Retriever()
 generator = Generator()
@@ -37,7 +40,9 @@ def query(q: Query):
     return {"answer": answer, "sources": events}
 
 
-if __name__ == "__main__":
-    import uvicorn
+def main():
+    uvicorn.run(app, host="0.0.0.0", port=8081)
 
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+
+if __name__ == "__main__":
+    main()

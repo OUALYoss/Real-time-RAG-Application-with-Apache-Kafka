@@ -1,4 +1,5 @@
 import json
+from apscheduler.schedulers.blocking import BlockingScheduler
 from kafka import KafkaConsumer, KafkaProducer
 from .normalizer import Normalizer
 from .deduplicator import Deduplicator
@@ -12,6 +13,7 @@ RAW_TOPICS = [
     "raw-news",
 ]
 OUTPUT_TOPIC = "processed-events"
+PROCESSING_INTERVAL = 60  # Process every 60 seconds
 
 
 class Processor:
@@ -22,6 +24,7 @@ class Processor:
             auto_offset_reset="earliest",
             group_id="processing-group",
             value_deserializer=lambda m: json.loads(m.decode()),
+            consumer_timeout_ms=1000,  # Timeout after 1 second if no messages
         )
         self.producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
@@ -45,7 +48,21 @@ class Processor:
 
 
 def main():
-    Processor().run()
+    """Main function with scheduler"""
+    processor = Processor()
+
+    # Process immediately at startup
+    print("Processing initial batch...")
+    processor.run()
+
+    # Set up scheduler for periodic processing
+    scheduler = BlockingScheduler()
+    scheduler.add_job(
+        processor.run, "interval", seconds=PROCESSING_INTERVAL, id="batch_processing"
+    )
+
+    print(f"Starting scheduled processing every {PROCESSING_INTERVAL} seconds...")
+    scheduler.start()
 
 
 if __name__ == "__main__":

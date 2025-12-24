@@ -1,7 +1,7 @@
 kafka-python==2.0.2
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
-httpx==0.26.0
+httpx    
 apscheduler==3.10.4
 pydantic==2.5.3
 python-dotenv==1.0.0
@@ -12,5 +12,6 @@ ollama==0.1.6
 streamlit==1.31.0
 plotly==5.18.0
 requests==2.31.0
+apscheduler
 pytrends==4.9.2
 pandas==2.2.0
