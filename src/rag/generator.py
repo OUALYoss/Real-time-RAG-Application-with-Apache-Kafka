@@ -13,6 +13,7 @@ INSTRUCTIONS:
 - If OFFICIAL DATA lists disaster events, summarize them concisely (Type, Location, Magnitude, Time).
 - If OFFICIAL DATA is empty, inform the user that no specific monitoring data was found for this query.
 - Always use YYYY-MM-DD HH:MM UTC for dates.
+- Include all the relevant details from the DATA section in your answer.
 - Be factual and do not invent details not present in the DATA section.
 
 Answer:"""
