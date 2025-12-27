@@ -3,7 +3,7 @@ from kafka import KafkaConsumer
 from .embedder import Embedder
 from .vector_store import VectorStore
 
-KAFKA_SERVERS = "localhost:9092"
+KAFKA_SERVERS = "127.0.0.1:9094"
 TOPIC = "processed-events"
 
 
@@ -12,6 +12,7 @@ class EmbeddingConsumer:
         self.consumer = KafkaConsumer(
             TOPIC,
             bootstrap_servers=KAFKA_SERVERS,
+            api_version=(2, 8, 1),
             auto_offset_reset="earliest",
             group_id="embedding-group",
             value_deserializer=lambda m: json.loads(m.decode()),
