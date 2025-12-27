@@ -3,37 +3,30 @@ import subprocess
 import sys
 import os
 import multiprocessing
-import time
-import signal
 import logging
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-)
-logger = logging.getLogger("orchestrator")
+
+def setup_logging(component: str):
+    logging.basicConfig(
+        level=logging.INFO,
+        format=f"[%(processName)s | PID %(process)d | {component}] %(levelname)s - %(message)s",
+    )
 
 
 def run_ingestion():
-    """Run the ingestion main function."""
-    try:
-        from src.ingestion.main import main as ingestion_main
+    setup_logging("INGESTION")
+    logging.info("Starting ingestion service")
+    from src.ingestion.main import main as ingestion_main
 
-        ingestion_main()
-    except Exception as e:
-        logger.error(f"Ingestion crashed: {e}")
+    ingestion_main()
 
 
 def run_processing():
-    """Run the processing main function."""
-    try:
-        from src.processing.main import main as processing_main
+    setup_logging("PROCESSING")
+    logging.info("Starting processing service")
+    from src.processing.main import main as processing_main
 
-        processing_main()
-    except Exception as e:
-        logger.error(f"Processing crashed: {e}")
+    processing_main()
 
 
 def run_embed():
@@ -45,86 +38,18 @@ def run_embed():
 
 
 def run_api():
-    """Run the API main function via uvicorn subprocess."""
-    try:
-        subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "uvicorn",
-                "src.api.main:app",
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8080",
-            ]
-        )
-    except Exception as e:
-        logger.error(f"API crashed: {e}")
+    setup_logging("API")
+    logging.info("Starting API service")
+    from src.api.main import main as api_main
+
+    api_main()
 
 
 def run_dashboard():
-    """Run the dashboard Streamlit app."""
-    try:
-        dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard", "app.py")
-        subprocess.run([sys.executable, "-m", "streamlit", "run", dashboard_path])
-    except Exception as e:
-        logger.error(f"Dashboard crashed: {e}")
-
-
-def run_embed():
-    """Run the embedding builder main function."""
-    try:
-        from src.rag.builder import main as embed_main
-
-        embed_main()
-    except Exception as e:
-        logger.error(f"Embedding crashed: {e}")
-
-
-class Orchestrator:
-    def __init__(self):
-        self.processes = {}
-        self.running = True
-        signal.signal(signal.SIGINT, self.stop)
-        signal.signal(signal.SIGTERM, self.stop)
-
-    def stop(self, signum, frame):
-        logger.info("Shutdown signal received. Stopping all processes...")
-        self.running = False
-        for name, p in self.processes.items():
-            if p.is_alive():
-                logger.info(f"Terminating {name}...")
-                p.terminate()
-        sys.exit(0)
-
-    def start_process(self, name, target):
-        p = multiprocessing.Process(target=target, name=name)
-        p.start()
-        self.processes[name] = p
-        logger.info(f"Started {name} (PID: {p.pid})")
-        return p
-
-    def run_all(self):
-        logger.info("Starting all Disaster RAG components...")
-        self.start_process("ingestion", run_ingestion)
-        self.start_process("processing", run_processing)
-        self.start_process("embedding", run_embed)
-        self.start_process("api", run_api)
-        self.start_process("dashboard", run_dashboard)
-
-        while self.running:
-            time.sleep(5)
-            for name, p in list(self.processes.items()):
-                if not p.is_alive():
-                    if name == "dashboard":
-                        logger.info(
-                            "Dashboard closed by user. Shutting down orchestrator..."
-                        )
-                        self.stop(None, None)
-                    else:
-                        logger.warning(f"Process {name} died! Restarting...")
-                        self.start_process(name, p._target)
+    setup_logging("DASHBOARD")
+    logging.info("Starting dashboard service")
+    dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard", "app.py")
+    subprocess.run([sys.executable, "-m", "streamlit", "run", dashboard_path])
 
 
 def main():
@@ -159,8 +84,24 @@ def main():
         run_dashboard()
 
     elif args.command == "all":
-        orchestrator = Orchestrator()
-        orchestrator.run_all()
+        logging.info("Running all components in parallel...")
+
+        processes = []
+
+        def start_process(name, target):
+            p = multiprocessing.Process(target=target, name=name)
+            p.start()
+            logging.info(f"{name} started (PID {p.pid})")
+            processes.append(p)
+
+        start_process("INGESTION", run_ingestion)
+        start_process("PROCESSING", run_processing)
+        start_process("EMBEDDING", run_embed)
+        start_process("API", run_api)
+        start_process("DASHBOARD", run_dashboard)
+
+        for p in processes:
+            p.join()
 
 
 if __name__ == "__main__":

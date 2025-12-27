@@ -10,7 +10,6 @@ class BaseProducer:
         self.topic = topic
         self.producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
-            api_version=(2, 8, 1),
             value_serializer=lambda v: json.dumps(v).encode(),
         )
 
