@@ -36,6 +36,14 @@ def run_processing():
         logger.error(f"Processing crashed: {e}")
 
 
+def run_embed():
+    setup_logging("EMBEDDING")
+    logging.info("Starting embedding service")
+    from src.rag.builder import main as embed_main
+
+    embed_main()
+
+
 def run_api():
     """Run the API main function via uvicorn subprocess."""
     try:
@@ -120,27 +128,36 @@ class Orchestrator:
 
 
 def main():
+    setup_logging("ORCHESTRATOR")
+
     parser = argparse.ArgumentParser(
         description="Real-time RAG Application Orchestrator"
     )
     parser.add_argument(
         "command",
         choices=["ingest", "process", "embed", "api", "dashboard", "all"],
-        help="Command to run: ingest, process, embed, api, dashboard, or all",
+        help="Command to run",
     )
 
     args = parser.parse_args()
 
+    logging.info(f"Command received: {args.command}")
+
     if args.command == "ingest":
         run_ingestion()
+
     elif args.command == "process":
         run_processing()
+
     elif args.command == "embed":
         run_embed()
+
     elif args.command == "api":
         run_api()
+
     elif args.command == "dashboard":
         run_dashboard()
+
     elif args.command == "all":
         orchestrator = Orchestrator()
         orchestrator.run_all()

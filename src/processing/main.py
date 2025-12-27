@@ -1,10 +1,11 @@
 import json
-from apscheduler.schedulers.blocking import BlockingScheduler
+import logging
 from kafka import KafkaConsumer, KafkaProducer
 from .normalizer import Normalizer
 from .deduplicator import Deduplicator
 
-KAFKA_SERVERS = "127.0.0.1:9094"
+KAFKA_SERVERS = "localhost:9092"
+
 RAW_TOPICS = [
     "raw-earthquakes",
     "raw-disasters",
@@ -12,28 +13,34 @@ RAW_TOPICS = [
     "raw-wildfires",
     "raw-news",
 ]
+
 OUTPUT_TOPIC = "processed-events"
-PROCESSING_INTERVAL = 60  # Process every 60 seconds
 
 
 class Processor:
     def __init__(self):
-        self.consumer = KafkaConsumer(
+        self.normalizer = Normalizer()
+        self.deduplicator = Deduplicator()
+
+    def run(self):
+        logging.info("Starting PROCESSING streaming service")
+
+        consumer = KafkaConsumer(
             *RAW_TOPICS,
             bootstrap_servers=KAFKA_SERVERS,
             api_version=(2, 8, 1),
             auto_offset_reset="earliest",
-            group_id="processing-group",
+            group_id="processing-group-streaming",  # 🔥 NOUVEAU GROUPE
+            enable_auto_commit=True,
             value_deserializer=lambda m: json.loads(m.decode()),
             consumer_timeout_ms=10000,  # Timeout after 10 seconds
         )
-        self.producer = KafkaProducer(
+
+        producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
             api_version=(2, 8, 1),
             value_serializer=lambda v: json.dumps(v).encode(),
         )
-        self.normalizer = Normalizer()
-        self.deduplicator = Deduplicator()
 
     def run(self):
         print("Processor checking for messages...")
@@ -63,23 +70,31 @@ class Processor:
         except Exception as e:
             print(f"Error in processor run: {e}")
 
+                producer.send(
+                    OUTPUT_TOPIC,
+                    key=normalized["event_id"].encode(),
+                    value=normalized,
+                )
+
+                logging.info(
+                    f"Sent processed event {normalized['event_id']} to {OUTPUT_TOPIC}"
+                )
+
+        except KeyboardInterrupt:
+            logging.info("Processing stopped by user")
+
+        finally:
+            consumer.close()
+            producer.close()
+
 
 def main():
-    """Main function with scheduler"""
-    processor = Processor()
-
-    # Process immediately at startup
-    print("Processing initial batch...")
-    processor.run()
-
-    # Set up scheduler for periodic processing
-    scheduler = BlockingScheduler()
-    scheduler.add_job(
-        processor.run, "interval", seconds=PROCESSING_INTERVAL, id="batch_processing"
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[PROCESSING] %(levelname)s - %(message)s",
     )
 
-    print(f"Starting scheduled processing every {PROCESSING_INTERVAL} seconds...")
-    scheduler.start()
+    Processor().run()
 
 
 if __name__ == "__main__":

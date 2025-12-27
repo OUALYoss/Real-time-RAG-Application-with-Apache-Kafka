@@ -31,6 +31,7 @@ class Query(BaseModel):
     question: str
     n_results: int = 5
     fetch_fresh: bool = False  # NEW: fetch fresh data from APIs
+    duration_hours: int = None
 
 
 @app.get("/")
@@ -143,6 +144,9 @@ def query(q: Query):
         "news_articles": news_context["articles"],
         "fresh_data_count": len([e for e in all_events if e.get("fresh")]),
     }
+    events = retriever.retrieve(q.question, n=q.n_results, duration_hours=q.duration_hours)
+    answer = generator.generate(q.question, events)
+    return {"answer": answer, "sources": events}
 
 
 def main():
