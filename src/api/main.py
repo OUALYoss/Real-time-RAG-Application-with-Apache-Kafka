@@ -3,10 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from ..rag.retriever import Retriever
 from ..rag.generator import Generator
-from ..rag.news_enricher import NewsEnricher
-from ..rag.on_demand_fetcher import OnDemandFetcher
 from ..embedding.vector_store import VectorStore
-from ..embedding.embedder import Embedder
 import uvicorn
 
 
@@ -16,21 +13,14 @@ app.add_middleware(
 )
 
 
-from ..rag.builder import Builder
-
 retriever = Retriever()
 generator = Generator()
-enricher = NewsEnricher(max_articles=3)
-fetcher = OnDemandFetcher()
-embedder = Embedder()
 store = VectorStore()
-builder = Builder()  # Shared instance for doc synthesis
 
 
 class Query(BaseModel):
     question: str
     n_results: int = 5
-    fetch_fresh: bool = False  # NEW: fetch fresh data from APIs
     duration_hours: int = None
 
 
@@ -41,37 +31,7 @@ def root():
 
 @app.get("/stats")
 def stats():
-    return {
-        "total_events": store.count(),  # ChromaDB count
-        "chroma_db_count": store.count(),  # Make it clear this is ChromaDB
-    }
-
-
-@app.get("/latest")
-def latest_events(limit: int = 10):
-    """Get truly latest events from ChromaDB by sorting metadata"""
-    try:
-        # Fetch a larger pool to allow sorting by timestamp (ChromaDB get doesn't support order_by)
-        results = store.collection.get(limit=100, include=["documents", "metadatas"])
-
-        events = []
-        for i in range(len(results["ids"])):
-            events.append(
-                {
-                    "id": results["ids"][i],
-                    "document": (
-                        results["documents"][i][:150] if results["documents"] else ""
-                    ),
-                    "metadata": results["metadatas"][i] if results["metadatas"] else {},
-                }
-            )
-
-        # Sort by timestamp descending
-        events.sort(key=lambda x: x["metadata"].get("timestamp", ""), reverse=True)
-
-        return {"events": events[:limit]}
-    except Exception as e:
-        return {"events": [], "error": str(e)}
+    return {"total_events": store.count()}
 
 
 @app.post("/query")
@@ -144,10 +104,13 @@ def query(q: Query):
         "news_articles": news_context["articles"],
         "fresh_data_count": len([e for e in all_events if e.get("fresh")]),
     }
+    events = retriever.retrieve(q.question, n=q.n_results, duration_hours=q.duration_hours)
+    answer = generator.generate(q.question, events)
+    return {"answer": answer, "sources": events}
 
 
 def main():
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8081)
 
 
 if __name__ == "__main__":

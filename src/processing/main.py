@@ -53,6 +53,32 @@ class Processor:
         except Exception as e:
             logging.error(f"Failed to initialize Kafka: {e}")
             return
+        consumer = KafkaConsumer(
+            *RAW_TOPICS,
+            bootstrap_servers=KAFKA_SERVERS,
+            auto_offset_reset="earliest",
+            group_id="processing-group-streaming",  # 🔥 NOUVEAU GROUPE
+            enable_auto_commit=True,
+            value_deserializer=lambda m: json.loads(m.decode()),
+        )
+
+        producer = KafkaProducer(
+            bootstrap_servers=KAFKA_SERVERS,
+            value_serializer=lambda v: json.dumps(v).encode(),
+        )
+
+        try:
+            for message in consumer:
+                event = message.value
+                logging.info(
+                    f"Processing event {event.get('event_id', 'unknown')}"
+                )
+
+                normalized = self.normalizer.normalize(event)
+
+                if self.deduplicator.is_duplicate(normalized):
+                    logging.info("Duplicate skipped")
+                    continue
 
         try:
             while self.running:
