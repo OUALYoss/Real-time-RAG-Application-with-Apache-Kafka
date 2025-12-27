@@ -1,13 +1,21 @@
 import ollama
 
-PROMPT = """Based on these disaster events, answer the question.
+PROMPT = """You are a helpful Disaster Monitoring Assistant. Use the provided official monitoring data and news context to answer the user's question.
 
-EVENTS:
+OFFICIAL DATA:
 {context}
 
 QUESTION: {question}
 
-Answer factually based on the data above, include all the available data :"""
+QUESTION: {question}
+
+INSTRUCTIONS:
+- If OFFICIAL DATA lists disaster events, summarize them concisely (Type, Location, Magnitude, Time).
+- If OFFICIAL DATA is empty, inform the user that no specific monitoring data was found for this query.
+- Always use YYYY-MM-DD HH:MM UTC for dates.
+- Be factual and do not invent details not present in the DATA section.
+
+Answer:"""
 
 
 class Generator:
@@ -16,7 +24,7 @@ class Generator:
 
     def generate(self, question: str, events: list) -> str:
         context = "\n".join(
-            [f"- [{e['metadata'].get('source')}] {e['document']}" for e in events]
+            [f"- [{e['metadata']}] {e['document']}" for e in events]
         )
 
         response = ollama.chat(

@@ -1,7 +1,11 @@
 import requests
+from requests.exceptions import RequestException
 from datetime import datetime
 from .producer import BaseProducer
 from .config import TOPICS
+import logging
+
+logger = logging.getLogger(__name__)
 
 USGS_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
 
@@ -11,8 +15,12 @@ class USGSProducer(BaseProducer):
         super().__init__(TOPICS["earthquakes"])
 
     def fetch_and_send(self):
-        resp = requests.get(USGS_URL, timeout=30)
-        resp.raise_for_status()
+        try:
+            resp = requests.get(USGS_URL, timeout=30)
+            resp.raise_for_status()
+        except RequestException as e:
+            logger.warning(f"[USGS] Temporary fetch failure: {e}")
+            return   
 
         for f in resp.json().get("features", []):
             props = f["properties"]

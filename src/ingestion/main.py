@@ -18,7 +18,7 @@ def main():
         "owm": OWMProducer(),
         "firms": FIRMSProducer(),
         "news": NewsProducer(),
-        "trends": TrendsProducer(),
+        # "trends": TrendsProducer(),
     }
 
     scheduler = BlockingScheduler()
@@ -41,9 +41,9 @@ def main():
     scheduler.add_job(
         producers["news"].fetch_and_send, "interval", seconds=INTERVALS["news"]
     )
-    scheduler.add_job(
-        producers["trends"].fetch_and_send, "interval", seconds=INTERVALS["trends"]
-    )
+    # scheduler.add_job(
+    #     producers["trends"].fetch_and_send, "interval", seconds=INTERVALS["trends"]
+    # )
 
     for p in producers.values():
         try:

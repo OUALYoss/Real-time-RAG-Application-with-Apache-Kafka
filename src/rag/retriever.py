@@ -1,6 +1,6 @@
 from ..embedding.embedder import Embedder
 from ..embedding.vector_store import VectorStore
-
+from datetime import datetime, timedelta
 
 class Retriever:
     def __init__(self):
@@ -8,10 +8,29 @@ class Retriever:
         self.store = VectorStore()
 
     def retrieve(
-        self, query: str, n=5
+        self, query: str,
+        duration_hours: int = None,
+        n=5, 
     ) -> list:  # We can add a timestamp limitation here later
         embedding = self.embedder.embed(query)
-        results = self.store.search(embedding, n=n)
+
+        where = None
+        if duration_hours is not None:
+            now_ts = int(datetime.utcnow().timestamp())
+            lower_bound = now_ts - duration_hours * 3600
+            print("Lower bound timestamp:", lower_bound)
+
+            where = {
+                "timestamp_ts": {
+                    "$gte": lower_bound
+                }
+            }
+
+        results = self.store.search(
+            embedding,
+            n=n,
+            where=where,   # filtrage AVANT similarité
+        )
 
         events = []
         if results["ids"][0]:

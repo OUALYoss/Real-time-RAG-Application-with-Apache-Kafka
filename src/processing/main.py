@@ -1,10 +1,11 @@
 import json
-from apscheduler.schedulers.blocking import BlockingScheduler
+import logging
 from kafka import KafkaConsumer, KafkaProducer
 from .normalizer import Normalizer
 from .deduplicator import Deduplicator
 
 KAFKA_SERVERS = "localhost:9092"
+
 RAW_TOPICS = [
     "raw-earthquakes",
     "raw-disasters",
@@ -12,59 +13,71 @@ RAW_TOPICS = [
     "raw-wildfires",
     "raw-news",
 ]
+
 OUTPUT_TOPIC = "processed-events"
-PROCESSING_INTERVAL = 60  # Process every 60 seconds
 
 
 class Processor:
     def __init__(self):
-        self.consumer = KafkaConsumer(
-            *RAW_TOPICS,
-            bootstrap_servers=KAFKA_SERVERS,
-            auto_offset_reset="earliest",
-            group_id="processing-group",
-            value_deserializer=lambda m: json.loads(m.decode()),
-            consumer_timeout_ms=1000,  # Timeout after 1 second if no messages
-        )
-        self.producer = KafkaProducer(
-            bootstrap_servers=KAFKA_SERVERS,
-            value_serializer=lambda v: json.dumps(v).encode(),
-        )
         self.normalizer = Normalizer()
         self.deduplicator = Deduplicator()
 
     def run(self):
-        for message in self.consumer:
-            event = message.value
-            normalized = self.normalizer.normalize(event)
+        logging.info("Starting PROCESSING streaming service")
 
-            if self.deduplicator.is_duplicate(normalized):
-                continue
+        consumer = KafkaConsumer(
+            *RAW_TOPICS,
+            bootstrap_servers=KAFKA_SERVERS,
+            auto_offset_reset="earliest",
+            group_id="processing-group-streaming",  # 🔥 NOUVEAU GROUPE
+            enable_auto_commit=True,
+            value_deserializer=lambda m: json.loads(m.decode()),
+        )
 
-            self.producer.send(
-                OUTPUT_TOPIC, key=normalized["event_id"].encode(), value=normalized
-            )
-            self.producer.flush()
+        producer = KafkaProducer(
+            bootstrap_servers=KAFKA_SERVERS,
+            value_serializer=lambda v: json.dumps(v).encode(),
+        )
+
+        try:
+            for message in consumer:
+                event = message.value
+                logging.info(
+                    f"Processing event {event.get('event_id', 'unknown')}"
+                )
+
+                normalized = self.normalizer.normalize(event)
+
+                if self.deduplicator.is_duplicate(normalized):
+                    logging.info("Duplicate skipped")
+                    continue
+
+                producer.send(
+                    OUTPUT_TOPIC,
+                    key=normalized["event_id"].encode(),
+                    value=normalized,
+                )
+
+                logging.info(
+                    f"Sent processed event {normalized['event_id']} to {OUTPUT_TOPIC}"
+                )
+
+        except KeyboardInterrupt:
+            logging.info("Processing stopped by user")
+
+        finally:
+            consumer.close()
+            producer.close()
 
 
 def main():
-    """Main function with scheduler"""
-    processor = Processor()
-
-    # Process immediately at startup
-    print("Processing initial batch...")
-    processor.run()
-
-    # Set up scheduler for periodic processing
-    scheduler = BlockingScheduler()
-    scheduler.add_job(
-        processor.run, "interval", seconds=PROCESSING_INTERVAL, id="batch_processing"
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[PROCESSING] %(levelname)s - %(message)s",
     )
 
-    print(f"Starting scheduled processing every {PROCESSING_INTERVAL} seconds...")
-    scheduler.start()
+    Processor().run()
 
 
 if __name__ == "__main__":
     main()
-    
