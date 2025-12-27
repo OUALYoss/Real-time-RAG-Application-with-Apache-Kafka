@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-KAFKA_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+KAFKA_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "127.0.0.1:9094")
 TOPICS = {
     "earthquakes": "raw-earthquakes",
     "disasters": "raw-disasters",
@@ -15,13 +15,16 @@ TOPICS = {
 }
 
 INTERVALS = {
-    "earthquakes": 60,
-    "disasters": 300,
-    "weather_nws": 120,
-    "weather_owm": 600,
-    "wildfires": 900,
-    "news": 300,
-    "trends": 3600,
+    "earthquakes": 180,  # 3 minutes
+    "disasters": 180,  # 3 minutes
+    "weather_nws": 180,  # 3 minutes
+    "weather_owm": 180,  # 3 minutes
+    "wildfires": 180,  # 3 minutes
+    "news": 180,  # 3 minutes
+    "trends": 180,  # 3 minutes
+    "gdelt": 180,  # 3 minutes
+    "reliefweb": 180,  # 3 minutes
+    "eonet": 180,  # 3 minutes
 }
 
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")

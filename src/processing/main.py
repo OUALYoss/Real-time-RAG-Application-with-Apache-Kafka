@@ -28,29 +28,47 @@ class Processor:
         consumer = KafkaConsumer(
             *RAW_TOPICS,
             bootstrap_servers=KAFKA_SERVERS,
+            api_version=(2, 8, 1),
             auto_offset_reset="earliest",
             group_id="processing-group-streaming",  # 🔥 NOUVEAU GROUPE
             enable_auto_commit=True,
             value_deserializer=lambda m: json.loads(m.decode()),
+            consumer_timeout_ms=10000,  # Timeout after 10 seconds
         )
 
         producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
+            api_version=(2, 8, 1),
             value_serializer=lambda v: json.dumps(v).encode(),
         )
 
+    def run(self):
+        print("Processor checking for messages...")
         try:
-            for message in consumer:
-                event = message.value
-                logging.info(
-                    f"Processing event {event.get('event_id', 'unknown')}"
-                )
+            count = 0
+            for message in self.consumer:
+                try:
+                    event = message.value
+                    print(f"Processing event: {event.get('id', 'unknown')}")
+                    normalized = self.normalizer.normalize(event)
 
-                normalized = self.normalizer.normalize(event)
+                    if self.deduplicator.is_duplicate(normalized):
+                        print("Duplicate skipped")
+                        continue
 
-                if self.deduplicator.is_duplicate(normalized):
-                    logging.info("Duplicate skipped")
-                    continue
+                    self.producer.send(
+                        OUTPUT_TOPIC,
+                        key=normalized["event_id"].encode(),
+                        value=normalized,
+                    )
+                    self.producer.flush()
+                    print(f"Produced event {normalized['event_id']}")
+                    count += 1
+                except Exception as e:
+                    print(f"Error processing message: {e}")
+            print(f"Processor finished batch. Processed {count} messages.")
+        except Exception as e:
+            print(f"Error in processor run: {e}")
 
                 producer.send(
                     OUTPUT_TOPIC,

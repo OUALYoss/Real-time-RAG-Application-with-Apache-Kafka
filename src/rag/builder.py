@@ -108,7 +108,7 @@ class Builder:
     #     logging.info("Historical embedding completed")
 
     def run_streaming(self) -> None:
-        """Stream and embed new events from the topic as they arrive, skipping duplicates"""
+        """Stream and embed new events from the topic, processing in micro-batches"""
         logging.info("Starting streaming consumer for new events...")
         consumer = KafkaConsumer(
             TOPIC,

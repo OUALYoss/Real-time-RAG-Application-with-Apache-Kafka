@@ -2,12 +2,15 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 from .config import INTERVALS
 from .gdacs_producer import GDACSProducer
+from .gdelt_producer import GDELTProducer
 from .nasa_firms_producer import FIRMSProducer
 from .newsapi_producer import NewsProducer
 from .nws_producer import NWSProducer
 from .owm_producer import OWMProducer
 from .trends_producer import TrendsProducer
 from .usgs_producer import USGSProducer
+from .reliefweb_producer import ReliefWebProducer
+from .eonet_producer import EONETProducer
 
 
 def main():
@@ -18,7 +21,10 @@ def main():
         "owm": OWMProducer(),
         "firms": FIRMSProducer(),
         "news": NewsProducer(),
-        # "trends": TrendsProducer(),
+        "trends": TrendsProducer(),
+        "gdelt": GDELTProducer(),
+        # "reliefweb": ReliefWebProducer(),  # API 403 - requires auth
+        "eonet": EONETProducer(),
     }
 
     scheduler = BlockingScheduler()
@@ -41,9 +47,18 @@ def main():
     scheduler.add_job(
         producers["news"].fetch_and_send, "interval", seconds=INTERVALS["news"]
     )
+    scheduler.add_job(
+        producers["trends"].fetch_and_send, "interval", seconds=INTERVALS["trends"]
+    )
+    scheduler.add_job(
+        producers["gdelt"].fetch_and_send, "interval", seconds=INTERVALS["gdelt"]
+    )
     # scheduler.add_job(
-    #     producers["trends"].fetch_and_send, "interval", seconds=INTERVALS["trends"]
+    #     producers["reliefweb"].fetch_and_send, "interval", seconds=INTERVALS["reliefweb"]
     # )
+    scheduler.add_job(
+        producers["eonet"].fetch_and_send, "interval", seconds=INTERVALS["eonet"]
+    )
 
     for p in producers.values():
         try:
