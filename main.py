@@ -16,9 +16,20 @@ logging.basicConfig(
 logger = logging.getLogger("orchestrator")
 
 
+def setup_logging(name):
+    """Configure logging for a specific component."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format=f"%(asctime)s [%(levelname)s] {name}: %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)],
+        force=True,
+    )
+
+
 def run_ingestion():
     """Run the ingestion main function."""
     try:
+        setup_logging("INGESTION")
         from src.ingestion.main import main as ingestion_main
 
         ingestion_main()
@@ -29,6 +40,7 @@ def run_ingestion():
 def run_processing():
     """Run the processing main function."""
     try:
+        setup_logging("PROCESSING")
         from src.processing.main import main as processing_main
 
         processing_main()
@@ -36,21 +48,14 @@ def run_processing():
         logger.error(f"Processing crashed: {e}")
 
 
-def run_embed():
-    setup_logging("EMBEDDING")
-    logging.info("Starting embedding service")
-    from src.rag.builder import main as embed_main
-
-    embed_main()
-
-
 def run_api():
     """Run the API main function via uvicorn subprocess."""
     try:
+        # Use uv run to ensure the correct environment
         subprocess.run(
             [
-                sys.executable,
-                "-m",
+                "uv",
+                "run",
                 "uvicorn",
                 "src.api.main:app",
                 "--host",
@@ -66,8 +71,9 @@ def run_api():
 def run_dashboard():
     """Run the dashboard Streamlit app."""
     try:
+        # Use uv run to ensure the correct environment
         dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard", "app.py")
-        subprocess.run([sys.executable, "-m", "streamlit", "run", dashboard_path])
+        subprocess.run(["uv", "run", "streamlit", "run", dashboard_path])
     except Exception as e:
         logger.error(f"Dashboard crashed: {e}")
 
@@ -75,6 +81,7 @@ def run_dashboard():
 def run_embed():
     """Run the embedding builder main function."""
     try:
+        setup_logging("EMBEDDING")
         from src.rag.builder import main as embed_main
 
         embed_main()
@@ -85,6 +92,7 @@ def run_embed():
 class Orchestrator:
     def __init__(self):
         self.processes = {}
+        self.targets = {}  # Store target functions for restarting
         self.running = True
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGTERM, self.stop)
@@ -102,6 +110,7 @@ class Orchestrator:
         p = multiprocessing.Process(target=target, name=name)
         p.start()
         self.processes[name] = p
+        self.targets[name] = target
         logger.info(f"Started {name} (PID: {p.pid})")
         return p
 
@@ -124,7 +133,7 @@ class Orchestrator:
                         self.stop(None, None)
                     else:
                         logger.warning(f"Process {name} died! Restarting...")
-                        self.start_process(name, p._target)
+                        self.start_process(name, self.targets[name])
 
 
 def main():

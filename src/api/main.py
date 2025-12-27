@@ -105,8 +105,8 @@ def query(q: Query):
 
         # Quick embed fresh data and calculate real similarity
         for event in fresh_events:
-            # Create comprehensive document using unified logic
-            doc = builder._synthesize_document(event)
+            # Create comprehensive document from event
+            doc = event.get("description", "")
             event_embedding = embedder.embed(doc)
 
             # Calculate cosine distance (1.0 - cosine_similarity)
@@ -144,9 +144,6 @@ def query(q: Query):
         "news_articles": news_context["articles"],
         "fresh_data_count": len([e for e in all_events if e.get("fresh")]),
     }
-    events = retriever.retrieve(q.question, n=q.n_results, duration_hours=q.duration_hours)
-    answer = generator.generate(q.question, events)
-    return {"answer": answer, "sources": events}
 
 
 def main():

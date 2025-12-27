@@ -8,14 +8,8 @@ class Retriever:
         self.store = VectorStore()
 
     def retrieve(
-        self, query: str, n=5, threshold=0.8
-    ) -> (
-        list
-    ):  # For cosine distance, 0.0 is exact match, 1.0 is unrelated. 0.8 is a safe threshold.
-        self, query: str,
-        duration_hours: int = None,
-        n=5, 
-    ) -> list:  # We can add a timestamp limitation here later
+        self, query: str, duration_hours: int = None, n=5, threshold=0.8
+    ) -> list:  # For cosine distance, 0.0 is exact match, 1.0 is unrelated. 0.8 is a safe threshold.
         embedding = self.embedder.embed(query)
 
         where = None
