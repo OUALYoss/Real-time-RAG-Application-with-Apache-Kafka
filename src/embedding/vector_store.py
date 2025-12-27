@@ -14,11 +14,12 @@ class VectorStore:
             metadatas=[metadata],
         )
 
-    def search(self, query_embedding: list, n=5) -> dict:
+    def search(self, query_embedding: list, n=5, where=None) -> dict:
         return self.collection.query(
             query_embeddings=[query_embedding],
             n_results=n,
             include=["documents", "metadatas", "distances"],
+            where=where,
         )
 
     def count(self) -> int:
