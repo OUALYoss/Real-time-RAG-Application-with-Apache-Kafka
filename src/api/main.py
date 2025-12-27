@@ -21,6 +21,7 @@ store = VectorStore()
 class Query(BaseModel):
     question: str
     n_results: int = 5
+    duration_hours: int = None
 
 
 @app.get("/")
@@ -35,7 +36,7 @@ def stats():
 
 @app.post("/query")
 def query(q: Query):
-    events = retriever.retrieve(q.question, n=q.n_results)
+    events = retriever.retrieve(q.question, n=q.n_results, duration_hours=q.duration_hours)
     answer = generator.generate(q.question, events)
     return {"answer": answer, "sources": events}
 

@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-API = "http://localhost:8080"
+API = "http://localhost:8081"   # 8080
 
 st.set_page_config(page_title="Disaster RAG", layout="wide")
 
@@ -69,12 +69,12 @@ st.markdown(
 )
 
 
-def query_rag(question: str, n_results: int = 5):
+def query_rag(question: str, n_results: int = 5, previous_hours: int = None):
     try:
         resp = requests.post(
             f"{API}/query",
-            json={"question": question, "n_results": n_results},
-            timeout=30,
+            json={"question": question, "n_results": n_results, 
+                  "duration_hours": previous_hours},
         )
         return resp.json()
     except Exception as e:
@@ -128,15 +128,25 @@ with col_main:
         label_visibility="collapsed",
     )
 
-    col_btn, col_slider = st.columns([1, 2])
+    col_btn, col_controls = st.columns([2, 4])
+
     with col_btn:
         search = st.button("🔍 Search", type="primary", use_container_width=True)
-    with col_slider:
+
+    with col_controls:
         n_results = st.slider("Sources to use", 1, 10, 5)
+
+        previous_hours = st.slider(
+            "Previous hours",
+            min_value=1,
+            max_value=48,
+            value=24,
+            help="Search only events from the last N hours",
+        )
 
     if search and question:
         with st.spinner("Searching..."):
-            result = query_rag(question, n_results)
+            result = query_rag(question, n_results, previous_hours)
 
         if "error" in result:
             st.error(f"Error: {result['error']}")
@@ -152,6 +162,9 @@ with col_main:
             )
 
             sources = result.get("sources", [])
+
+            st.write(sources)
+
             if sources:
                 st.markdown(f"### 📚 Sources ({len(sources)})")
                 for src in sources:
@@ -164,7 +177,7 @@ with col_main:
                         <span style="color: #666;">
                             {meta.get("source", "Unknown")}
                             <span class="severity-{severity}">{severity.upper()}</span>
-                            {meta.get("timestamp", "")[:19]}
+                            {meta.get("timestamp", "")}
                         </span>
                     </div>
                     """,
