@@ -4,12 +4,10 @@ import chromadb
 class VectorStore:
     def __init__(self, host="localhost", port=8000):
         self.client = chromadb.HttpClient(host=host, port=port)
-        self.collection = self.client.get_or_create_collection(
-            name="disaster_events", metadata={"hnsw:space": "cosine"}
-        )
+        self.collection = self.client.get_or_create_collection("disaster_events")
 
     def add(self, event_id: str, embedding: list, document: str, metadata: dict):
-        self.collection.upsert(
+        self.collection.add(
             ids=[event_id],
             embeddings=[embedding],
             documents=[document],
