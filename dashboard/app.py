@@ -121,9 +121,9 @@ def get_latest_events(limit=5):
 
 def confidence_class(score):
     if score >= 0.7:
-        return "conf-high", "💚"
+        return "conf-high", "🟢"
     elif score >= 0.4:
-        return "conf-mid", "💛"
+        return "conf-mid", "🟠"
     return "conf-low", "🔴"
 
 
