@@ -13,26 +13,6 @@ def setup_logging(component: str):
     )
 
 
-def setup_logging(name):
-    """Configure logging for a specific component."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format=f"%(asctime)s [%(levelname)s] {name}: %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)],
-        force=True,
-    )
-
-
-def setup_logging(name):
-    """Configure logging for a specific component."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format=f"%(asctime)s [%(levelname)s] {name}: %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout)],
-        force=True,
-    )
-
-
 def run_ingestion():
     setup_logging("INGESTION")
     logging.info("Starting ingestion service")
@@ -46,9 +26,7 @@ def run_processing():
     logging.info("Starting processing service")
     from src.processing.main import main as processing_main
 
-        processing_main()
-    except Exception as e:
-        logger.error(f"Processing crashed: {e}")
+    processing_main()
 
 
 def run_embed():

@@ -5,8 +5,7 @@ import sys
 from kafka import KafkaConsumer, KafkaProducer
 from .normalizer import Normalizer
 from .deduplicator import Deduplicator
-
-KAFKA_SERVERS = "127.0.0.1:9094"
+from ingestion.config import KAFKA_SERVERS
 
 RAW_TOPICS = [
     "raw-earthquakes",
@@ -66,19 +65,6 @@ class Processor:
             bootstrap_servers=KAFKA_SERVERS,
             value_serializer=lambda v: json.dumps(v).encode(),
         )
-
-        try:
-            for message in consumer:
-                event = message.value
-                logging.info(
-                    f"Processing event {event.get('event_id', 'unknown')}"
-                )
-
-                normalized = self.normalizer.normalize(event)
-
-                if self.deduplicator.is_duplicate(normalized):
-                    logging.info("Duplicate skipped")
-                    continue
 
         try:
             while self.running:

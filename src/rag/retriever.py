@@ -1,5 +1,8 @@
-from ..embedding.embedder import Embedder
-from ..embedding.vector_store import VectorStore
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from embedding.embedder import Embedder
+from embedding.vector_store import VectorStore
 from datetime import datetime, timedelta
 
 class Retriever:
@@ -8,7 +11,7 @@ class Retriever:
         self.store = VectorStore()
 
     def retrieve(
-        self, query: str, duration_hours: int = None, n=5, threshold=0.8
+        self, query: str, duration_hours: int = 1, n=5, threshold=0.8
     ) -> list:  # For cosine distance, 0.0 is exact match, 1.0 is unrelated. 0.8 is a safe threshold.
         embedding = self.embedder.embed(query)
 
@@ -33,12 +36,19 @@ class Retriever:
         events = []
         if results["ids"][0]:
             for i in range(len(results["ids"][0])):
-                events.append(
-                    {
-                        "id": results["ids"][0][i],
-                        "document": results["documents"][0][i],
-                        "metadata": results["metadatas"][0][i],
-                        "distance": results["distances"][0][i],
-                    }
-                )
+                distance = results["distances"][0][i]
+
+                # Filter: only include results below distance threshold
+                if distance <= threshold:
+                    events.append(
+                        {
+                            "id": results["ids"][0][i],
+                            "document": results["documents"][0][i],
+                            "metadata": results["metadatas"][0][i],
+                            "distance": distance,
+                            "confidence": max(
+                                0, 1 - distance
+                            ),  # Convert to confidence score
+                        }
+                    )
         return events
