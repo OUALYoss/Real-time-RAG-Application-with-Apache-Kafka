@@ -6,7 +6,6 @@ from .nasa_firms_producer import FIRMSProducer
 from .newsapi_producer import NewsProducer
 from .nws_producer import NWSProducer
 from .owm_producer import OWMProducer
-from .trends_producer import TrendsProducer
 from .usgs_producer import USGSProducer
 
 
@@ -18,7 +17,6 @@ def main():
         "owm": OWMProducer(),
         "firms": FIRMSProducer(),
         "news": NewsProducer(),
-        # "trends": TrendsProducer(),
     }
 
     scheduler = BlockingScheduler()

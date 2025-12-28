@@ -32,7 +32,7 @@ class Retriever:
         results = self.store.search(
             embedding,
             n=n,
-            where=where, # filtrage AVANT similarité
+            where=where,  # filtrage AVANT similarité
         )
 
         events = []
