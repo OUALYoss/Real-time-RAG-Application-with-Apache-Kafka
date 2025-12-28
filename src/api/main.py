@@ -38,10 +38,13 @@ def stats():
     return {"total_events": store.count()}
 
 
-@app.get("/test_retrieve")
-def test_retrieve():
-    results = retriever.retrieve("sudan fires", duration_hours=24, n=5)
-    return {"count": len(results), "results": results}
+@app.get("/test_embed")
+def test_embed():
+    try:
+        emb = retriever.embedder.embed("test")
+        return {"length": len(emb)}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/latest")

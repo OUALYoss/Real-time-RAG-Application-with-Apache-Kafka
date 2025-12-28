@@ -195,7 +195,7 @@ with col_main:
             st.error(result["error"])
         else:
             answer = result.get("answer", "")
-            sources = result.get("sources", {})
+            sources = result.get("sources", [])
 
             if answer:
                 st.markdown("### 🧠 AI Summary")
