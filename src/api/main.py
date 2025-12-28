@@ -3,13 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from rag.retriever import Retriever
 from rag.generator import Generator
 from embedding.vector_store import VectorStore
 import uvicorn
 from rag.news_enricher import NewsEnricher
-from embedding.embedder import Embedder
 
 app = FastAPI(title="Disaster RAG API")
 app.add_middleware(
@@ -36,6 +36,7 @@ def root():
 @app.get("/stats")
 def stats():
     return {"total_events": store.count()}
+
 
 @app.get("/latest")
 def latest_events(limit: int = 10):
@@ -69,7 +70,9 @@ def query(q: Query):
     all_events = []
 
     # 1. Retrieve from vector store
-    stored_events = retriever.retrieve(q.question, n=q.n_results, duration_hours=q.duration_hours)
+    stored_events = retriever.retrieve(
+        q.question, n=q.n_results, duration_hours=q.duration_hours
+    )
     all_events.extend(stored_events)
 
     # 2. Enrich with GDELT news context
@@ -84,7 +87,6 @@ def query(q: Query):
         "sources": all_events[: q.n_results],
         "news_articles": news_context["articles"],
     }
-  
 
 
 def main():

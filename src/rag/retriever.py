@@ -1,9 +1,13 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 from embedding.embedder import Embedder
 from embedding.vector_store import VectorStore
 from datetime import datetime, timedelta
+
 
 class Retriever:
     def __init__(self):
@@ -12,7 +16,9 @@ class Retriever:
 
     def retrieve(
         self, query: str, duration_hours: int = 1, n=5, threshold=0.8
-    ) -> list:  # For cosine distance, 0.0 is exact match, 1.0 is unrelated. 0.8 is a safe threshold.
+    ) -> (
+        list
+    ):  # For cosine distance, 0.0 is exact match, 1.0 is unrelated. 0.8 is a safe threshold.
         embedding = self.embedder.embed(query)
 
         where = None
@@ -21,16 +27,12 @@ class Retriever:
             lower_bound = now_ts - duration_hours * 3600
             print("Lower bound timestamp:", lower_bound)
 
-            where = {
-                "timestamp_ts": {
-                    "$gte": lower_bound
-                }
-            }
+            where = {"timestamp_ts": {"$gte": lower_bound}}
 
         results = self.store.search(
             embedding,
             n=n,
-            where=where,   # filtrage AVANT similarité
+            where=where,  # filtrage AVANT similarité
         )
 
         events = []

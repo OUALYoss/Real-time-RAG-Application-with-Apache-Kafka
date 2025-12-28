@@ -86,6 +86,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
 # =========================
 # API Helpers
 # =========================
@@ -142,7 +143,7 @@ col_main, col_side = st.columns([2.6, 1])
 # ---------- Sidebar ----------
 with col_side:
     st.markdown("### 📊 System Status")
-    st.metric("Embedded Events", f"{stats.get('chroma_db_count', 0):,}")
+    st.metric("Embedded Events", f"{stats.get('total_events', 0):,}")
 
     st.markdown("---")
     st.markdown("### 🔥 Latest Events")

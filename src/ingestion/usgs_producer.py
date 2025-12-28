@@ -20,7 +20,7 @@ class USGSProducer(BaseProducer):
             resp.raise_for_status()
         except RequestException as e:
             logger.warning(f"[USGS] Temporary fetch failure: {e}")
-            return   
+            return
 
         for f in resp.json().get("features", []):
             props = f["properties"]

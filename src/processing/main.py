@@ -4,7 +4,7 @@ import signal
 from kafka import KafkaConsumer, KafkaProducer
 from .normalizer import Normalizer
 from .deduplicator import Deduplicator
-from ingestion.config import KAFKA_SERVERS
+from ..ingestion.config import KAFKA_SERVERS
 
 RAW_TOPICS = [
     "raw-earthquakes",
@@ -16,19 +16,20 @@ RAW_TOPICS = [
 
 OUTPUT_TOPIC = "processed-events"
 
+
 class Processor:
     def __init__(self):
         self.normalizer = Normalizer()
         self.deduplicator = Deduplicator()
         self.running = True
-        
+
     def stop(self, signum, frame):
         logging.info("Stopping processor...")
         self.running = False
 
     def run(self):
         logging.info("Starting PROCESSING streaming service")
-        
+
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGTERM, self.stop)
 
@@ -83,10 +84,12 @@ class Processor:
                                 key=normalized["event_id"].encode(),
                                 value=normalized,
                             )
-                            logging.info(f"Processed and sent event: {normalized['event_id']}")
+                            logging.info(
+                                f"Processed and sent event: {normalized['event_id']}"
+                            )
                         except Exception as e:
                             logging.error(f"Error processing message: {e}")
-                
+
                 producer.flush()
         except Exception as e:
             logging.error(f"Error in processor loop: {e}")
@@ -95,12 +98,14 @@ class Processor:
             producer.close()
             logging.info("Processor cleanup complete.")
 
+
 def main():
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] PROCESSING: %(message)s",
     )
     Processor().run()
+
 
 if __name__ == "__main__":
     main()

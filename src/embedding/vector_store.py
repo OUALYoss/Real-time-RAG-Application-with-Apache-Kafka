@@ -14,7 +14,7 @@ class VectorStore:
             metadatas=[metadata],
         )
 
-    def search(self, query_embedding: list, n=5, where=None) :
+    def search(self, query_embedding: list, n=5, where=None):
         return self.collection.query(
             query_embeddings=[query_embedding],
             n_results=n,

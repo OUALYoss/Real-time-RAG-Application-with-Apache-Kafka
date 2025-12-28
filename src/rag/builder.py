@@ -15,7 +15,6 @@ class Builder:
         self.store = VectorStore()
         self.consumer = None
 
-    
     def build_and_store_batch(self, events: list) -> None:
         """Process and store a batch of events efficiently"""
         if not events:
@@ -30,7 +29,7 @@ class Builder:
         for event in events:
             if not event.get("timestamp"):
                 continue  # Skip events without timestamp
-            
+
             event_ids.append(event["event_id"])
             documents.append(event["description"])
             metadata_list.append(
@@ -66,12 +65,9 @@ class Builder:
         )
         logging.info(f"Stored batch of {len(events)} events")
 
-    
-
     def build_and_store(self, event: dict) -> None:
         """Store a single event - wraps batch method for compatibility"""
         self.build_and_store_batch([event])
-
 
     # def run_historical(self) -> None:
     #     """Embed all existing events in the topic"""

@@ -1,6 +1,7 @@
 from datetime import datetime
 import re
 
+
 class Normalizer:
     def normalize(self, event: dict) -> dict:
         event_normalized = {
@@ -16,7 +17,9 @@ class Normalizer:
             "place": self._format_place(event),
             "severity": self._get_severity(event),
         }
-        event_normalized["description"] = self._format_description(event_normalized, event)
+        event_normalized["description"] = self._format_description(
+            event_normalized, event
+        )
         event_normalized["timestamp_ts"] = self._to_timestamp_ts(event_normalized)
         return event_normalized
 
@@ -52,7 +55,6 @@ class Normalizer:
             return "low"
 
         return "low"
-    
 
     def _format_time(self, event: dict) -> str | None:
         ts = event.get("timestamp")
@@ -78,9 +80,7 @@ class Normalizer:
                 return dt.strftime("%Y-%m-%d %H:%M UTC")
 
             if re.match(r"\d{4}-\d{2}-\d{2}", ts):
-                dt = datetime.fromisoformat(
-                    ts.replace("UTC", "").strip()
-                )
+                dt = datetime.fromisoformat(ts.replace("UTC", "").strip())
                 return dt.strftime("%Y-%m-%d %H:%M UTC")
         except Exception:
             pass
@@ -103,22 +103,14 @@ class Normalizer:
 
         # --- Fallback: give up ---
         return None
-    
-
 
     def _to_timestamp_ts(self, event) -> int | None:
         timestamp_str = event.get("timestamp")
         try:
-            dt = datetime.strptime(
-                timestamp_str.replace(" UTC", ""),
-                "%Y-%m-%d %H:%M"
-            )
+            dt = datetime.strptime(timestamp_str.replace(" UTC", ""), "%Y-%m-%d %H:%M")
             return int(dt.timestamp())
         except Exception:
             return None
-        
-
-
 
     def _format_place(self, event: dict) -> str:
         place = event.get("place")
@@ -133,13 +125,11 @@ class Normalizer:
             return f"latitude = {lat} and longitude = {lon}"
 
         return "Unknown Location"
-    
 
     def _format_title(self, event: dict) -> str | None:
         et = event.get("event_type", "Disaster").replace("_", " ").title()
         title = event.get("title") or f"{et} event"
         return title
-        
 
     def _format_description(self, event_normalized: dict, event: dict) -> str:
         """
@@ -168,12 +158,8 @@ class Normalizer:
         if event_normalized.get("event_id"):
             parts.append(f"Event ID: {event_normalized['event_id']}")
 
-        parts.append(
-            f"Event type: {event_normalized.get('event_type', 'unknown')}"
-        )
-        parts.append(
-            f"Source: {event_normalized.get('source', 'unknown')}"
-        )
+        parts.append(f"Event type: {event_normalized.get('event_type', 'unknown')}")
+        parts.append(f"Source: {event_normalized.get('source', 'unknown')}")
 
         if event_normalized.get("timestamp"):
             parts.append(f"Timestamp: {event_normalized['timestamp']}")
@@ -191,7 +177,6 @@ class Normalizer:
             parts.append(f"Severity: {event_normalized['severity']}")
 
         return " ".join(parts) + "."
-
 
     # def _synthesize_document(self, event: dict) -> str:
     #     """Create a natural language document from event data"""
