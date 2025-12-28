@@ -106,7 +106,7 @@ def query_rag(question, n_results, duration_hours):
 
 def get_stats():
     try:
-        return requests.get(f"{API}/stats", timeout=5).json()
+        return requests.get(f"{API}/stats").json()
     except Exception:
         return None
 

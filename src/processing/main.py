@@ -1,7 +1,6 @@
 import json
 import logging
 import signal
-import sys
 from kafka import KafkaConsumer, KafkaProducer
 from .normalizer import Normalizer
 from .deduplicator import Deduplicator

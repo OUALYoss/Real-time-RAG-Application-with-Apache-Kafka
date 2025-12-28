@@ -37,6 +37,32 @@ def root():
 def stats():
     return {"total_events": store.count()}
 
+@app.get("/latest")
+def latest_events(limit: int = 10):
+    """Get truly latest events from ChromaDB by sorting metadata"""
+    try:
+        # Fetch a larger pool to allow sorting by timestamp (ChromaDB get doesn't support order_by)
+        results = store.collection.get(limit=100, include=["documents", "metadatas"])
+
+        events = []
+        for i in range(len(results["ids"])):
+            events.append(
+                {
+                    "id": results["ids"][i],
+                    "document": (
+                        results["documents"][i][:150] if results["documents"] else ""
+                    ),
+                    "metadata": results["metadatas"][i] if results["metadatas"] else {},
+                }
+            )
+
+        # Sort by timestamp descending
+        events.sort(key=lambda x: x["metadata"].get("timestamp", ""), reverse=True)
+
+        return {"events": events[:limit]}
+    except Exception as e:
+        return {"events": [], "error": str(e)}
+
 
 @app.post("/query")
 def query(q: Query):
