@@ -32,7 +32,7 @@ class Generator:
                 [f"- [{e['metadata']}] {e['document']}" for e in events]
             )
 
-        news_text = "None available"
+        news_text = ""
         if news_context and news_context.get("articles"):
             news_items = []
             for article in news_context["articles"][:3]:

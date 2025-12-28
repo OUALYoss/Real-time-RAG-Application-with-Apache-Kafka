@@ -32,7 +32,7 @@ class Retriever:
         results = self.store.search(
             embedding,
             n=n,
-            where=where,  # filtrage AVANT similarité
+            where=where, # filtrage AVANT similarité
         )
 
         events = []
@@ -40,7 +40,7 @@ class Retriever:
             for i in range(len(results["ids"][0])):
                 distance = results["distances"][0][i]
 
-                # Filter: only include results below distance threshold
+                # Filter: only include results below distance threshold (lower distance = higher similarity)
                 if distance <= threshold:
                     events.append(
                         {

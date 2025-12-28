@@ -75,7 +75,10 @@ class NewsEnricher:
             return {"articles": [], "keywords": []}
 
         # Build GDELT query
-        gdelt_query = " OR ".join(keywords) + " sourcelang:english"
+        if len(keywords) > 1:
+            gdelt_query = f"({' OR '.join(keywords)}) sourcelang:english"
+        else:
+            gdelt_query = f"{list(keywords)[0]} sourcelang:english"
 
         params = {
             "query": gdelt_query,
@@ -87,8 +90,10 @@ class NewsEnricher:
         }
 
         try:
-            resp = requests.get(GDELT_DOC_API, params=params, timeout=5)
+            resp = requests.get(GDELT_DOC_API, params=params)
             resp.raise_for_status()
+            print(f"GDELT response status: {resp.status_code}")
+            print(f"GDELT response text: {resp.text[:200]}")
             data = resp.json()
 
             articles = data.get("articles", [])[: self.max_articles]

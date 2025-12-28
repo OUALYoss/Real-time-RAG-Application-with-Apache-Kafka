@@ -25,7 +25,7 @@ store = VectorStore()
 class Query(BaseModel):
     question: str
     n_results: int = 5
-    duration_hours: int = 1
+    duration_hours: int = 24
 
 
 @app.get("/")
@@ -36,6 +36,12 @@ def root():
 @app.get("/stats")
 def stats():
     return {"total_events": store.count()}
+
+
+@app.get("/test_retrieve")
+def test_retrieve():
+    results = retriever.retrieve("sudan fires", duration_hours=24, n=5)
+    return {"count": len(results), "results": results}
 
 
 @app.get("/latest")
@@ -73,6 +79,7 @@ def query(q: Query):
     stored_events = retriever.retrieve(
         q.question, n=q.n_results, duration_hours=q.duration_hours
     )
+    print(f"Debug: stored_events = {len(stored_events)}")
     all_events.extend(stored_events)
 
     # 2. Enrich with GDELT news context
@@ -86,6 +93,7 @@ def query(q: Query):
         "answer": answer,
         "sources": all_events[: q.n_results],
         "news_articles": news_context["articles"],
+        "debug": f"stored_events: {len(all_events)}",
     }
 
 
