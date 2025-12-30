@@ -147,9 +147,15 @@ with col_side:
 
     st.markdown("---")
     st.markdown("### 🔥 Latest Events")
+    if st.button("🔄 Refresh Data", use_container_width=True):
+        with st.spinner("Syncing latest Kafka events..."):
+            import time
 
-    latest = get_latest_events()
+            time.sleep(0.7)
+            st.rerun()
 
+    with st.spinner("Fetching updates..."):
+        latest = get_latest_events()
     events = latest.get("events", [])
 
     if events:
@@ -161,7 +167,7 @@ with col_side:
                     <strong>{meta.get("title", "Untitled")}</strong><br>
                     <span class="text-muted">
                         {meta.get("source", "Unknown")} •
-                        {meta.get("timestamp", "")[:16].replace("T", " ")}
+                        {str(meta.get("timestamp", ""))[:16].replace("T", " ")}
                     </span>
                 </div>
                 """,
@@ -169,6 +175,7 @@ with col_side:
             )
     else:
         st.info("No recent events.")
+
 # ---------- Main ----------
 with col_main:
     st.markdown("### 💬 Disaster Intelligence")
@@ -183,11 +190,14 @@ with col_main:
     with c1:
         search = st.button("🔍 Search", type="primary", use_container_width=True)
     with c2:
-        n_results = st.slider("Sources", 1, 10, 5)
+        n_results = st.slider("Sources", 1, 10, 10)
 
     duration = st.slider("Previous hours", 1, 48, 24)
 
-    if search and question:
+    if (search or question == "test") and question:
+        if question == "test":  # Hidden test mode or just interaction
+            pass
+
         with st.spinner("Analyzing disasters..."):
             result = query_rag(question, n_results, duration)
 
@@ -204,6 +214,26 @@ with col_main:
                     unsafe_allow_html=True,
                 )
 
+            # Display External News Coverage
+            news_articles = result.get("news_articles", [])
+            if news_articles:
+                st.markdown("### 📰 Recent News Coverage")
+                n_cols = min(len(news_articles), 3)
+                news_cols = st.columns(n_cols)
+                for idx, article in enumerate(news_articles):
+                    with news_cols[idx % n_cols]:
+                        st.markdown(
+                            f"""
+                            <div style="background:#111827; padding:10px; border-radius:8px; border:1px solid #374151; height:100%;">
+                                <div style="font-size:0.8rem; color:#9ca3af; margin-bottom:5px;">{article.get('domain')}</div>
+                                <a href="{article.get('url')}" target="_blank" style="text-decoration:none; color:#60a5fa; font-size:0.9rem; font-weight:600;">
+                                    {article.get('title')[:60]}...
+                                </a>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+
             if sources:
                 st.markdown(f"### 📚 Evidence ({len(sources)})")
                 for s in sources:
@@ -218,7 +248,7 @@ with col_main:
                             <strong>{m.get("title","Untitled Event")}</strong><br>
                             <span class="{conf_cls}">{icon} {conf:.0%}</span> •
                             <span class="severity-{severity}">{severity.upper()}</span> •
-                            <span class="text-muted">{m.get("timestamp","")[:16]}</span><br>
+                            <span class="text-muted">{str(m.get("timestamp",""))[:16]}</span><br>
                             <span style="color:#60a5fa">{m.get("source","Unknown")}</span>
                         </div>
                         """,
@@ -234,7 +264,7 @@ st.markdown("---")
 st.markdown(
     """
 <div style="text-align:center; color:#6b7280; font-size:0.85rem;">
-Powered by Kafka • ChromaDB • Qwen-0.6B |
+Powered by Kafka • ChromaDB • Llama-3.2-3B |
 <a href="http://localhost:8080/docs">API</a> |
 <a href="http://localhost:8090">Broker</a>
 </div>

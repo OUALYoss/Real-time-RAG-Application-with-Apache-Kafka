@@ -15,15 +15,17 @@ class Retriever:
         self.store = VectorStore()
 
     def retrieve(
-        self, query: str, duration_hours: int = 1, n=5, threshold=0.8
+        self, query: str, duration_hours: int = 1, n=10, threshold=1.1
     ) -> (
         list
-    ):  # For cosine distance, 0.0 is exact match, 1.0 is unrelated. 0.8 is a safe threshold.
+    ):  # Relaxed from 0.8 to 1.1 for higher recall. 0.0 is exact match, 2.0 is opposite.
         embedding = self.embedder.embed(query)
 
         where = None
         if duration_hours is not None:
-            now_ts = int(datetime.utcnow().timestamp())
+            from datetime import timezone
+
+            now_ts = int(datetime.now(timezone.utc).timestamp())
             lower_bound = now_ts - duration_hours * 3600
             print("Lower bound timestamp:", lower_bound)
 

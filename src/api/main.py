@@ -24,7 +24,7 @@ store = VectorStore()
 
 class Query(BaseModel):
     question: str
-    n_results: int = 5
+    n_results: int = 10
     duration_hours: int = 24
 
 
@@ -49,10 +49,16 @@ def test_embed():
 
 @app.get("/latest")
 def latest_events(limit: int = 10):
-    """Get truly latest events from ChromaDB by sorting metadata"""
+    """Get truly latest events from ChromaDB by fetching the last added records."""
     try:
-        # Fetch a larger pool to allow sorting by timestamp (ChromaDB get doesn't support order_by)
-        results = store.collection.get(limit=100, include=["documents", "metadatas"])
+        total_count = store.count()
+        pool_size = 100
+        # Fetch the last 'pool_size' entries by setting an offset
+        offset = max(0, total_count - pool_size)
+
+        results = store.collection.get(
+            limit=pool_size, offset=offset, include=["documents", "metadatas"]
+        )
 
         events = []
         for i in range(len(results["ids"])):
@@ -66,8 +72,12 @@ def latest_events(limit: int = 10):
                 }
             )
 
-        # Sort by timestamp descending
-        events.sort(key=lambda x: x["metadata"].get("timestamp", ""), reverse=True)
+        # Sort by timestamp_ts if available, otherwise fallback to timestamp string
+        events.sort(
+            key=lambda x: x["metadata"].get("timestamp_ts")
+            or x["metadata"].get("timestamp", ""),
+            reverse=True,
+        )
 
         return {"events": events[:limit]}
     except Exception as e:

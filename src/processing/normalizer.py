@@ -106,9 +106,15 @@ class Normalizer:
 
     def _to_timestamp_ts(self, event) -> int | None:
         timestamp_str = event.get("timestamp")
+        if not timestamp_str:
+            return None
         try:
+            from datetime import timezone
+
+            # Assuming the " UTC" suffix means UTC.
             dt = datetime.strptime(timestamp_str.replace(" UTC", ""), "%Y-%m-%d %H:%M")
-            return int(dt.timestamp())
+            # Force it to UTC then get timestamp
+            return int(dt.replace(tzinfo=timezone.utc).timestamp())
         except Exception:
             return None
 
@@ -133,50 +139,39 @@ class Normalizer:
 
     def _format_description(self, event_normalized: dict, event: dict) -> str:
         """
-        Build a final textual description for embedding.
-        Priority:
-        1) Use raw description from `event` if valid (>5 chars)
-        - truncate to 1000 chars if needed
-        2) Otherwise synthesize description from `event_normalized`
-        In all cases, enrich with structured normalized context.
+        Build a concise natural language description for embedding.
+        Focuses on Event Type, Place, and Title for semantic relevance.
         """
-
         parts = []
 
-        # --- 1) Base description from raw event (if usable) ---
+        # 1. Start with the core event type and location (Strongest signal)
+        et = event_normalized.get("event_type", "disaster").replace("_", " ").title()
+        place = event_normalized.get("place", "Unknown Location")
+        parts.append(f"{et} in {place}.")
+
+        # 2. Add the title if it adds new information
+        title = event_normalized.get("title")
+        if title and title.lower() not in place.lower() and title != f"{et} event":
+            parts.append(title.strip(".") + ".")
+
+        # 3. Add a snippet of the raw description if valid
         raw_desc = event.get("description")
+        if raw_desc and raw_desc != "N/A" and len(raw_desc.strip()) > 10:
+            clean_desc = raw_desc.strip()
+            # If it starts with boilerplate, skip it
+            if clean_desc.lower().startswith("event details"):
+                pass
+            else:
+                if len(clean_desc) > 300:
+                    clean_desc = clean_desc[:300] + "..."
+                parts.append(clean_desc)
 
-        if raw_desc and raw_desc != "N/A" and len(raw_desc.strip()) > 5:
-            base_desc = raw_desc.strip()
-            if len(base_desc) > 1000:
-                base_desc = base_desc[:1000] + "..."
-            parts.append(base_desc)
-        else:
-            parts.append("Event details")
+        # 4. Add severity and source (Secondary signals)
+        source = event_normalized.get("source", "unknown")
+        severity = event_normalized.get("severity", "low")
+        parts.append(f"Source: {source} (Severity: {severity}).")
 
-        # --- 2) Enrich with normalized structured context ---
-        if event_normalized.get("event_id"):
-            parts.append(f"Event ID: {event_normalized['event_id']}")
-
-        parts.append(f"Event type: {event_normalized.get('event_type', 'unknown')}")
-        parts.append(f"Source: {event_normalized.get('source', 'unknown')}")
-
-        if event_normalized.get("timestamp"):
-            parts.append(f"Timestamp: {event_normalized['timestamp']}")
-
-        if event_normalized.get("ingested_at"):
-            parts.append(f"Ingested at: {event_normalized['ingested_at']}")
-
-        if event_normalized.get("title"):
-            parts.append(f"Title: {event_normalized['title']}")
-
-        if event_normalized.get("place"):
-            parts.append(f"Place: {event_normalized['place']}")
-
-        if event_normalized.get("severity"):
-            parts.append(f"Severity: {event_normalized['severity']}")
-
-        return " ".join(parts) + "."
+        return " ".join(parts)
 
     # def _synthesize_document(self, event: dict) -> str:
     #     """Create a natural language document from event data"""

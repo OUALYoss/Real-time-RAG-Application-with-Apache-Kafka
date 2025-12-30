@@ -106,13 +106,18 @@ class Builder:
     def run_streaming(self) -> None:
         """Stream and embed new events from the topic as they arrive, skipping duplicates"""
         logging.info("Starting streaming consumer for new events...")
-        consumer = KafkaConsumer(
-            TOPIC,
-            bootstrap_servers=KAFKA_SERVERS,
-            auto_offset_reset="latest",
-            group_id="embedding-group",
-            value_deserializer=lambda m: json.loads(m.decode()),
-        )
+        try:
+            consumer = KafkaConsumer(
+                TOPIC,
+                bootstrap_servers=KAFKA_SERVERS,
+                api_version=(2, 8, 1),
+                auto_offset_reset="earliest",  # Re-process events if builder was down
+                group_id="embedding-group",
+                value_deserializer=lambda m: json.loads(m.decode()),
+            )
+        except Exception as e:
+            logging.error(f"Failed to initialize Kafka consumer for embedding: {e}")
+            return
 
         try:
             for message in consumer:
