@@ -76,11 +76,6 @@ streamlit run dashboard/app.py  # Dashboard
 - ColBERT (late-interaction / token-level matching) is **not** used in this project. The codebase uses single-vector dense embeddings + ChromaDB.
 - You may see incidental references to "ColBERT-like" scoring inside installed transformer packages, but there is no ColBERT integration in `src/`.
 
-### When to consider ColBERT
-
-- We can use ColBERT if you need finer-grained token/phrase matching or multi-vector representations per document (better phrase recall/precision), especially for complex queries where single-vector representations fail.
-- Tradeoffs: better precision on phrase matches vs **higher complexity** — token encodings, multi-vector indices, different indexing tech (Faiss or specialized ColBERT implementations), larger storage, and higher query cost.
-
 ---
 
 ## Files of interest 📁
