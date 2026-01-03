@@ -11,9 +11,6 @@ class Normalizer:
             "timestamp": self._format_time(event),
             "ingested_at": event.get("ingested_at"),
             "title": self._format_title(event),
-            # "description": self._format_place(event),
-            # "latitude": event.get("latitude"),
-            # "longitude": event.get("longitude"),
             "place": self._format_place(event),
             "severity": self._get_severity(event),
         }
@@ -93,7 +90,7 @@ class Normalizer:
         except Exception:
             pass
 
-        # --- Case 3: RFC 822 with GM (legacy typo) ---
+        # --- Case 3: RFC 822 with GM ---
         # Example: Sat, 20 Dec 2025 12:11:22 GM
         try:
             dt = datetime.strptime(ts.replace("GM", "GMT"), "%a, %d %b %Y %H:%M:%S GMT")
@@ -172,34 +169,3 @@ class Normalizer:
         parts.append(f"Source: {source} (Severity: {severity}).")
 
         return " ".join(parts)
-
-    # def _synthesize_document(self, event: dict) -> str:
-    #     """Create a natural language document from event data"""
-    #     et = event.get("event_type", "Disaster").replace("_", " ").title()
-    #     title = event.get("title") or f"{et} event"
-    #     desc = event.get("description") or ""
-    #     place = event.get("place") or ""
-    #     timestamp = event.get("timestamp", "")
-
-    #     # Natural language format for better embedding
-    #     # We put the event type and place first to boost their relevance
-    #     parts = []
-    #     parts.append(
-    #         f"{et} in {place if place and place != 'N/A' else 'Unknown Location'}"
-    #     )
-
-    #     if (
-    #         title
-    #         and title != "Unknown event"
-    #         and title.lower() not in (place.lower() if place else "")
-    #     ):
-    #         parts.append(title)
-
-    #     if time_str:
-    #         parts.append(f"Occurred at {time_str}")
-
-    #     if desc and desc != "N/A" and len(desc) > 5:
-    #         # Only add first 100 chars of desc to keep it dense
-    #         parts.append(desc[:150] + ("..." if len(desc) > 150 else ""))
-
-    #     return ". ".join(parts) + "." if parts else "Disaster event."

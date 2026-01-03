@@ -94,7 +94,7 @@ streamlit run dashboard/app.py  # Dashboard
 
 ---
 
-## Next steps (options) ��
+## Next steps
 
 - Add a ColBERT-style retriever (files and infra changes).
 - Prototype a ColBERT retrieval path (e.g., Faiss + multi-vector handling) and provide a small benchmark vs the current approach.
