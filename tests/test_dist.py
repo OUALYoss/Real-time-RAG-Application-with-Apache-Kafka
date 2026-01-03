@@ -1,4 +1,4 @@
-from src.embedding.embedder import Embedder
+from ..src.embedding.embedder import Embedder
 import numpy as np
 
 

@@ -43,21 +43,26 @@ streamlit run dashboard/app.py  # Dashboard
 ### Components
 
 - **Embedding** (`src/embedding/embedder.py`)
+
   - Model: `SentenceTransformer('all-MiniLM-L6-v2')`
   - Embeddings are normalized at encode time for cosine similarity.
 
 - **Storage / Vector DB** (`src/embedding/vector_store.py`)
+
   - ChromaDB HTTP client, collection: `disaster_events` (cosine space).
 
 - **Indexing / Ingestion** (`src/rag/builder.py`)
+
   - `_synthesize_document(event)` converts structured event JSON into a compact natural-language document (event type, place, time, and short description) to improve embedding relevance.
   - Batch embedding/upsert performed for efficiency.
 
 - **Retrieval** (`src/rag/retriever.py`)
+
   - Query is embedded (single-vector) and Chroma is queried for nearest neighbors.
   - Results filtered using a distance threshold (default ≈ 0.8), and a confidence score is computed as `confidence = max(0, 1 - distance)`.
 
 - **Fetch-Live / On-Demand** (`src/api/main.py`)
+
   - When `fetch_fresh` is requested, APIs are polled, documents are synthesized and embedded on-the-fly, and similarity is computed directly via dot product (similarity) with the question embedding.
   - Fresh results are merged with stored results before enrichment and generation.
 
@@ -66,20 +71,21 @@ streamlit run dashboard/app.py  # Dashboard
 
 ---
 
-## ColBERT: Is it relevant? 🤔
+## ColBERT: Is it relevant?
 
-- **Short answer:** No — ColBERT (late-interaction / token-level matching) is **not** used in this project. The codebase uses single-vector dense embeddings + ChromaDB.
+- ColBERT (late-interaction / token-level matching) is **not** used in this project. The codebase uses single-vector dense embeddings + ChromaDB.
 - You may see incidental references to "ColBERT-like" scoring inside installed transformer packages, but there is no ColBERT integration in `src/`.
 
 ### When to consider ColBERT
-- Use ColBERT if you need finer-grained token/phrase matching or multi-vector representations per document (better phrase recall/precision), especially for complex queries where single-vector representations fail.
+
+- We can use ColBERT if you need finer-grained token/phrase matching or multi-vector representations per document (better phrase recall/precision), especially for complex queries where single-vector representations fail.
 - Tradeoffs: better precision on phrase matches vs **higher complexity** — token encodings, multi-vector indices, different indexing tech (Faiss or specialized ColBERT implementations), larger storage, and higher query cost.
 
 ---
 
 ## Files of interest 📁
 
-- `src/embedding/embedder.py`  — embedding model and helpers
+- `src/embedding/embedder.py` — embedding model and helpers
 - `src/embedding/vector_store.py` — ChromaDB client & search
 - `src/rag/builder.py` — document synthesis & batch upsert
 - `src/rag/retriever.py` — retrieval and filtering
@@ -90,11 +96,8 @@ streamlit run dashboard/app.py  # Dashboard
 
 ## Next steps (options) ��
 
-- I can map where to add a ColBERT-style retriever (files and infra changes). 
-- I can prototype a ColBERT retrieval path (e.g., Faiss + multi-vector handling) and provide a small benchmark vs the current approach.
-- I can produce a short implementation plan with estimated effort and tradeoffs.
-
-If you want any of the above, tell me which option to proceed with.
+- Add a ColBERT-style retriever (files and infra changes).
+- Prototype a ColBERT retrieval path (e.g., Faiss + multi-vector handling) and provide a small benchmark vs the current approach.
 
 ---
 
@@ -104,4 +107,4 @@ If you want any of the above, tell me which option to proceed with.
 - API docs: http://localhost:8080/docs
 - Kafka UI: http://localhost:8090
 
-*Last updated:* 2025-12-27
+_Last updated:_ 2025-12-27
